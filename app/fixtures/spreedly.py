@@ -1,5 +1,4 @@
-receiver_data = {
-    'visa': '{"state": "succeeded", "token": "bink_visa_token_1"}',
+deliver_data = {
     'mastercard': '<transaction>'
                   '<token>bink_mastercard_token_1</token>'
                   '<state>succeeded</state>'
@@ -35,4 +34,8 @@ receiver_data = {
             '<token>WhtIyJrcpcLupNpBD4bSVx3qyY5</token>'
             '</payment_method>'
             '</transaction>'
+}
+
+export_data = {
+    'visa': '{"state": "succeeded", "token": "bink_visa_token_1"}',
 }
