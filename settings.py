@@ -7,3 +7,4 @@ read_env()
 
 DEV_HOST = env_var("DEV_HOST", "0.0.0.0")
 DEV_PORT = env_var("DEV_PORT", "5050")
+DEBUG = env_var("DEBUG", False)
