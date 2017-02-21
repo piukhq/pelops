@@ -1,0 +1,21 @@
+tests:
+  script:
+  - pip3 install -r requirements.txt
+  - py.test app --cov=app
+
+complexity:
+  script:
+    - xenon --max-average A --max-modules B --max-absolute B .
+
+flake8:
+  script:
+    - flake8 *
+
+deploy:
+  image: hellobink/ansible
+  stage: deploy
+  environment: dev
+  script:
+  - cd /ansible && ansible-playbook playbooks/deploy/flask.yml -e project=pelops -e hosts=dev_web
+  only:
+  - master
