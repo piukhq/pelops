@@ -10,7 +10,7 @@ flake8:
   tags:
     - docker
 
-deploy:
+deploy_dev:
   stage: deploy
   environment: dev
   script:
@@ -19,5 +19,29 @@ deploy:
     - docker push hellobink/pelops:dev
   only:
     - master
+  tags:
+    - shell
+
+deploy_staging:
+  stage: deploy
+  environment: staging
+  script:
+    - docker build -t hellobink/pelops:staging .
+    - docker login -u binkautomation -p epitome-generic-basilisk
+    - docker push hellobink/pelops:staging
+  only:
+    - staging
+  tags:
+    - shell
+
+deploy_production:
+  stage: deploy
+  environment: production
+  script:
+    - docker build -t hellobink/pelops:production .
+    - docker login -u binkautomation -p epitome-generic-basilisk
+    - docker push hellobink/pelops:production
+  only:
+    - production
   tags:
     - shell
