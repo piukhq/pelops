@@ -14,10 +14,10 @@ deploy:
   stage: deploy
   environment: dev
   script:
-  - docker build -t hellobink/pelops:dev .
-  - docker login -u binkautomation -p epitome-generic-basilisk
-  - docker push hellobink/pelops:dev
-  # only:
-  # - master
+    - docker build -t hellobink/pelops:dev .
+    - docker login -u binkautomation -p epitome-generic-basilisk
+    - docker push hellobink/pelops:dev
+  only:
+    - master
   tags:
     - shell
