@@ -1,0 +1,23 @@
+complexity:
+  script:
+    - xenon --max-average A --max-modules B --max-absolute B .
+  tags:
+    - docker
+
+flake8:
+  script:
+    - flake8 *
+  tags:
+    - docker
+
+deploy:
+  stage: deploy
+  environment: dev
+  script:
+    - docker build -t hellobink/pelops:dev .
+    - docker login -u binkautomation -p epitome-generic-basilisk
+    - docker push hellobink/pelops:dev
+  only:
+    - master
+  tags:
+    - shell
