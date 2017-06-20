@@ -10,9 +10,10 @@ RUN addgroup --gid 1550 apps && \
  apt-key adv --keyserver keyserver.ubuntu.com --recv-keys C300EE8C && \
  apt-get update && \
  apt-get -y install rsync git git-core python3 python3-pip nginx curl && \
- curl -L 'https://github.com/just-containers/s6-overlay/releases/download/v1.18.1.5/s6-overlay-amd64.tar.gz' -o /tmp/s6-overlay-amd64.tar.gz && \
+ curl -L 'https://github.com/just-containers/s6-overlay/releases/download/v1.19.1.1/s6-overlay-amd64.tar.gz' -o /tmp/s6-overlay-amd64.tar.gz && \
  tar xzf /tmp/s6-overlay-amd64.tar.gz -C / && \
  sed -i -e 's/user www-data;/user apps;/g' /etc/nginx/nginx.conf && \
+ rm -rf /etc/nginx/sites-enabled && rm -rf /etc/nginx/sites-available && \
  rsync -a --remove-source-files /usr/local/src/pelops/docker_root/ / && \
  pip3 install --upgrade pip && \
  pip3 install uwsgi && \
