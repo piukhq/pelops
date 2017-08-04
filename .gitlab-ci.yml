@@ -1,26 +1,32 @@
+stages:
+  - tests
+  - build
+
 complexity:
+  stage: tests
   script:
     - xenon --max-average A --max-modules B --max-absolute B .
   tags:
     - docker
 
 flake8:
+  stage: tests
   script:
     - flake8 *
   tags:
     - docker
 
-deploy:
-  stage: deploy
+build:
+  stage: build
   script:
-    - docker build -t registry.gitlab.com/hellobink/olympus/pelops/image:build-$CI_PIPELINE_ID -t registry.gitlab.com/hellobink/olympus/pelops/image:latest .
-    - docker login registry.gitlab.com -u binkautomation -p $REPO_PASS
-    - docker push registry.gitlab.com/hellobink/olympus/pelops/image:latest
-    - docker push registry.gitlab.com/hellobink/olympus/pelops/image:build-$CI_PIPELINE_ID
-    - docker rmi registry.gitlab.com/hellobink/olympus/pelops/image:latest
-    - docker rmi registry.gitlab.com/hellobink/olympus/pelops/image:build-$CI_PIPELINE_ID
+    - docker build -t olympus.azurecr.io/pelops:$CI_PIPELINE_ID -t olympus.azurecr.io/pelops:latest .
+    - docker login olympus.azurecr.io -u $AZURE_LOGIN -p $AZURE_PASS
+    - docker push olympus.azurecr.io/pelops:$CI_PIPELINE_ID
+    - docker push olympus.azurecr.io/pelops:latest
+    - docker rmi olympus.azurecr.io/pelops:$CI_PIPELINE_ID
+    - docker rmi olympus.azurecr.io/pelops:latest
+    - docker logout olympus.azurecr.io
   only:
     - master
   tags:
     - shell
-
