@@ -16,17 +16,18 @@ flake8:
   tags:
     - docker
 
-build:
+build-master:
   stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   script:
-    - docker build -t olympus.azurecr.io/pelops:$CI_PIPELINE_ID -t olympus.azurecr.io/pelops:latest .
-    - docker login olympus.azurecr.io -u $AZURE_LOGIN -p $AZURE_PASS
-    - docker push olympus.azurecr.io/pelops:$CI_PIPELINE_ID
-    - docker push olympus.azurecr.io/pelops:latest
-    - docker rmi olympus.azurecr.io/pelops:$CI_PIPELINE_ID
-    - docker rmi olympus.azurecr.io/pelops:latest
-    - docker logout olympus.azurecr.io
+    - docker build --pull -t "$CI_REGISTRY/pelops:latest" .
+    - docker push "$CI_REGISTRY/pelops:latest"
   only:
     - master
   tags:
-    - shell
+    - docker
+
