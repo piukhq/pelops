@@ -1,4 +1,4 @@
-from flask_restplus import Api
+from flask_restplus import Api, Resource
 from app.apis.spreedly_stubs import spreedly_api as sp1
 
 stub_api = Api(ui=False,
@@ -8,3 +8,11 @@ stub_api = Api(ui=False,
                default='Pelops', default_label=u'Stubbed API for testing and staging')
 
 stub_api.add_namespace(sp1)
+
+
+class Healthz(Resource):
+    def get(self):
+        return ''
+
+
+stub_api.add_resource(Healthz, '/healthz')
