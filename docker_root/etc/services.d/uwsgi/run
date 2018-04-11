@@ -1,2 +1,0 @@
-#!/usr/bin/execlineb -P
-/usr/local/bin/uwsgi --emperor /etc/uwsgi/sites --logto /var/log/uwsgi.log

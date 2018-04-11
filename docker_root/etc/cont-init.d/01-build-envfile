@@ -1,7 +1,0 @@
-#!/usr/bin/with-contenv /bin/bash
-
-ENVFILE="/usr/local/src/pelops/.env"
-
-touch $ENVFILE
-chown apps:apps $ENVFILE
-echo "DEBUG=$PELOPS_DEBUG" > $ENVFILE
