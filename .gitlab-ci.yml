@@ -1,22 +1,19 @@
 stages:
   - tests
   - build
+  - deploy
 
 complexity:
   stage: tests
   script:
     - xenon --max-average A --max-modules B --max-absolute B .
-  tags:
-    - docker
 
 flake8:
   stage: tests
   script:
     - flake8 *
-  tags:
-    - docker
 
-build-master:
+build-develop:
   stage: build
   image: docker:latest
   services:
@@ -27,7 +24,37 @@ build-master:
     - docker build --pull -t "$CI_REGISTRY/pelops:latest" .
     - docker push "$CI_REGISTRY/pelops:latest"
   only:
-    - master
-  tags:
-    - docker
+    - develop
 
+build-master:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  script:
+    - docker build --pull -t "$CI_REGISTRY/pelops:$CI_COMMIT_TAG" .
+    - docker push "$CI_REGISTRY/pelops:$CI_COMMIT_TAG"
+  only:
+    - tags
+
+deploy-dev:
+  stage: deploy
+  image: binkops.azurecr.io/kubedeployer:latest
+  environment: dev
+  script:
+    - kubectl config use-context dev
+    - kubectl delete po $(kubectl get po --no-headers=true pods -l run=pelops -o custom-columns=:metadata.name)
+  only:
+    - develop
+
+deploy-staging:
+  stage: deploy
+  image: binkops.azurecr.io/kubedeployer:latest
+  environment: staging
+  script:
+    - kubectl config use-context staging
+    - kubectl set image deployment/pelops:$CI_COMMIT_TAG
+  only:
+    - tags
