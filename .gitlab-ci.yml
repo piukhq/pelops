@@ -55,6 +55,6 @@ deploy-staging:
   environment: staging
   script:
     - kubectl config use-context staging
-    - kubectl set image deployment/pelops:$CI_COMMIT_TAG
+    - kubectl set image deployment/pelops pelops=olympus.azurecr.io/pelops:$CI_COMMIT_TAG
   only:
     - tags
