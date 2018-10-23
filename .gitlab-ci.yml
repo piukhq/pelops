@@ -44,8 +44,7 @@ deploy-dev:
   image: binkops.azurecr.io/kubedeployer:latest
   environment: dev
   script:
-    - kubectl config use-context dev
-    - kubectl delete po $(kubectl get po --no-headers=true -l run=pelops -o custom-columns=:metadata.name)
+    - kubectl delete po -n=dev -l=project=pelops
   only:
     - develop
 
@@ -54,7 +53,6 @@ deploy-staging:
   image: binkops.azurecr.io/kubedeployer:latest
   environment: staging
   script:
-    - kubectl config use-context staging
-    - kubectl set image deployment/pelops pelops=olympus.azurecr.io/pelops:$CI_COMMIT_TAG
+    - kubectl set image -n=staging deployment/pelops pelops=olympus.azurecr.io/pelops:$CI_COMMIT_TAG
   only:
     - tags
