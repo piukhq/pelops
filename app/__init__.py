@@ -2,6 +2,7 @@ from flask import Flask
 
 from ddtrace import tracer
 from ddtrace.contrib.flask import TraceMiddleware
+import settings
 
 
 def create_app(config_name="settings"):
@@ -10,11 +11,12 @@ def create_app(config_name="settings"):
     app = Flask('core')
     app.config.from_object(config_name)
 
-    TraceMiddleware(
-        app,
-        tracer,
-        service="pelops",
-        distributed_tracing=True)
+    if settings.DATADOG_ENV:
+        TraceMiddleware(
+            app,
+            tracer,
+            service="pelops",
+            distributed_tracing=True)
 
     stub_api.init_app(app)
 
