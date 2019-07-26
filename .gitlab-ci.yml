@@ -30,7 +30,7 @@ tag-develop:
   stage: tagging
   image: binkops.azurecr.io/tagbot:latest
   script:
-    - --username "$CI_REGISTRY_USER" --password "$CI_REGISTRY_USER" --source "$CI_REGISTRY/pelops:latest" --tag "develop-$CI_COMMIT_SHORT_SHA"
+    - tagbot --username "$CI_REGISTRY_USER" --password "$CI_REGISTRY_USER" --source "$CI_REGISTRY/pelops:latest" --tag "develop-$CI_COMMIT_SHORT_SHA"
   only:
     - develop
 
@@ -51,6 +51,6 @@ tag-staging:
   stage: tagging
   image: binkops.azurecr.io/tagbot:latest
   script:
-    - --username "$CI_REGISTRY_USER" --password "$CI_REGISTRY_USER" --source "$CI_REGISTRY/pelops:$CI_COMMIT_TAG" --tag "staging-$CI_COMMIT_TAG"
+    - tagbot --username "$CI_REGISTRY_USER" --password "$CI_REGISTRY_USER" --source "$CI_REGISTRY/pelops:$CI_COMMIT_TAG" --tag "staging-$CI_COMMIT_TAG"
   only:
     - tags
