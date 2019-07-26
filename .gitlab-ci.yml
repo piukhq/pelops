@@ -1,7 +1,7 @@
 stages:
   - tests
   - build
-  - deploy
+  - tagging
 
 complexity:
   stage: tests
@@ -26,6 +26,14 @@ build-develop:
   only:
     - develop
 
+tag-develop:
+  stage: tagging
+  image: binkops.azurecr.io/tagbot:latest
+  script:
+    - --username "$CI_REGISTRY_USER" --password "$CI_REGISTRY_USER" --source "$CI_REGISTRY/pelops:latest" --tag "develop-$CI_COMMIT_SHORT_SHA"
+  only:
+    - develop
+
 build-master:
   stage: build
   image: docker:latest
@@ -39,20 +47,10 @@ build-master:
   only:
     - tags
 
-deploy-dev:
-  stage: deploy
-  image: binkops.azurecr.io/kubedeployer:latest
-  environment: dev
+tag-staging:
+  stage: tagging
+  image: binkops.azurecr.io/tagbot:latest
   script:
-    - kubectl delete po -n=dev -l=project=pelops
-  only:
-    - develop
-
-deploy-staging:
-  stage: deploy
-  image: binkops.azurecr.io/kubedeployer:latest
-  environment: staging
-  script:
-    - kubectl set image -n=staging deployment/pelops pelops=olympus.azurecr.io/pelops:$CI_COMMIT_TAG
+    - --username "$CI_REGISTRY_USER" --password "$CI_REGISTRY_USER" --source "$CI_REGISTRY/pelops:$CI_COMMIT_TAG" --tag "staging-$CI_COMMIT_TAG"
   only:
     - tags
