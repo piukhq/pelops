@@ -4,9 +4,12 @@ from uuid import uuid4
 from flask import request, jsonify, Response
 from flask_restplus import Namespace, Resource
 
+from app.apis.storage import Redis
 from app.fixtures.spreedly import deliver_data, export_data
+from settings import REDIS_URL
 
 spreedly_api = Namespace('spreedly', description='Spreedly related operations')
+storage = Redis(url=REDIS_URL)
 
 PAYMENT_TOKEN_FILEPATH = 'app/fixtures/payment.json'
 
@@ -42,32 +45,35 @@ class Retain(Resource):
 class PaymentAuthorisation(Resource):
     def post(self, gateway_token):
         request_json = request.get_json()
+
         try:
-            with open(PAYMENT_TOKEN_FILEPATH, 'r') as f:
-                file_data = json.loads(f.read())
-        except (FileNotFoundError, json.JSONDecodeError):
+            input_payment_token = request_json['transaction']['payment_method_token']
+        except KeyError:
+            return jsonify({"message": "incorrect input format"})
+
+        token_storage_key = 'tokens'
+        try:
+            file_data = json.loads(storage.get(token_storage_key))
+        except (json.JSONDecodeError, storage.NotFound):
             file_data = {"payment_tokens": [], "transaction_tokens": []}
 
-        if request_json['transaction']['payment_method_token'] in file_data['payment_tokens']:
+        if input_payment_token in file_data['payment_tokens']:
             resp = {
                 "transaction": {
                     "token": str(uuid4()),
                     "succeeded": True
                 }
             }
-            try:
-                with open(PAYMENT_TOKEN_FILEPATH, 'r') as f:
-                    file_data = json.loads(f.read())
-                    file_data['transaction_tokens'].append(resp['transaction']['token'])
-            except (FileNotFoundError, json.JSONDecodeError):
-                file_data = {
-                    "payment_tokens": [],
-                    "transaction_tokens": [resp['transaction']['token']]
-                }
-
-            with open(PAYMENT_TOKEN_FILEPATH, 'w+') as f:
-                json.dump({"payment_tokens": file_data['payment_tokens'],
-                           "transaction_tokens": file_data['transaction_tokens']}, f)
+            file_data['transaction_tokens'].append(resp['transaction']['token'])
+            file_data = {
+                "payment_tokens": [],
+                "transaction_tokens": [resp['transaction']['token']]
+            }
+            storage.set(
+                token_storage_key,
+                json.dumps({"payment_tokens": file_data['payment_tokens'],
+                            "transaction_tokens": file_data['transaction_tokens']})
+            )
         else:
             resp = {
                 "transaction": {
@@ -82,11 +88,11 @@ class PaymentAuthorisation(Resource):
 @spreedly_api.route('/v1/transactions/<transaction_token>/void.json')
 class PaymentVoid(Resource):
     def post(self, transaction_token):
+        token_storage_key = 'tokens'
         try:
-            with open(PAYMENT_TOKEN_FILEPATH, 'r') as f:
-                file_data = json.loads(f.read())
-        except (FileNotFoundError, json.JSONDecodeError):
-            pass
+            file_data = json.loads(storage.get(token_storage_key))
+        except (json.JSONDecodeError, storage.NotFound):
+            file_data = {"payment_tokens": [], "transaction_tokens": []}
 
         if transaction_token in file_data['transaction_tokens']:
             resp = {"transaction": {"succeeded": True}}
@@ -100,6 +106,7 @@ class PaymentVoid(Resource):
 class AddPaymentToken(Resource):
     def post(self):
         tokens = request.get_json()['payment_tokens']
+        token_storage_key = 'tokens'
         tokens_added = []
         errors = []
 
@@ -107,9 +114,8 @@ class AddPaymentToken(Resource):
             tokens = [tokens]
 
         try:
-            with open(PAYMENT_TOKEN_FILEPATH, 'r') as f:
-                file_data = json.loads(f.read())
-        except (FileNotFoundError, json.JSONDecodeError):
+            file_data = json.loads(storage.get(token_storage_key))
+        except (json.JSONDecodeError, storage.NotFound):
             file_data = {"payment_tokens": [], "transaction_tokens": []}
 
         for token in tokens:
@@ -119,8 +125,10 @@ class AddPaymentToken(Resource):
             else:
                 errors.append("payment token '{}' already in valid tokens list".format(token))
 
-        with open(PAYMENT_TOKEN_FILEPATH, 'w+') as f:
-            json.dump({"payment_tokens": file_data['payment_tokens'],
-                       "transaction_tokens": file_data['transaction_tokens']}, f)
+        storage.set(
+            token_storage_key,
+            json.dumps({"payment_tokens": file_data['payment_tokens'],
+                       "transaction_tokens": file_data['transaction_tokens']})
+        )
 
         return jsonify({"tokens added": tokens_added, "errors": errors})
