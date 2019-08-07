@@ -105,7 +105,10 @@ class PaymentVoid(Resource):
 @spreedly_api.route('/add_payment_token')
 class AddPaymentToken(Resource):
     def post(self):
-        tokens = request.get_json()['payment_tokens']
+        try:
+            tokens = request.get_json()['payment_tokens']
+        except KeyError:
+            return jsonify({"message": "incorrect input format"})
         token_storage_key = 'tokens'
         tokens_added = []
         errors = []
