@@ -21,3 +21,12 @@ class Export(Resource):
             return export_data[token]
         else:
             spreedly_api.abort(404, 'No export data for token {}'.format(token))
+
+
+@spreedly_api.route('/payment_methods/<token>/retain.json')
+class Retain(Resource):
+    def put(self, token):
+        if token:
+            return True
+        else:
+            spreedly_api.abort(404, 'Not retained token {}'.format(token))

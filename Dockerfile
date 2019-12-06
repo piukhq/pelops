@@ -1,6 +1,9 @@
-FROM python:3.6
+FROM python:3.7-alpine
 
 WORKDIR /app
 ADD . .
 
-RUN pip install uwsgi && pip install -r /app/requirements.txt
+RUN pip install pipenv gunicorn && \
+    pipenv install --system --deploy --ignore-pipfile
+
+CMD ["/usr/local/bin/gunicorn", "-c", "gunicorn.py", "wsgi:app"]
