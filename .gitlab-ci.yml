@@ -5,11 +5,13 @@ stages:
 
 complexity:
   stage: tests
+  image: olympus.azurecr.io/python:3.7
   script:
     - xenon --max-average A --max-modules B --max-absolute B .
 
 flake8:
   stage: tests
+  image: olympus.azurecr.io/python:3.7
   script:
     - flake8 *
 
