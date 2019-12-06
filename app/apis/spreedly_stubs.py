@@ -1,6 +1,6 @@
 from flask_restplus import Namespace, Resource
 
-from app.fixtures.spreedly import deliver_data, export_data
+from app.fixtures.spreedly import deliver_data, export_data, retain_data
 
 spreedly_api = Namespace('spreedly', description='Spreedly related operations')
 
@@ -21,3 +21,13 @@ class Export(Resource):
             return export_data[token]
         else:
             spreedly_api.abort(404, 'No export data for token {}'.format(token))
+
+
+@spreedly_api.route('/payment_methods/<token>/retain.json')
+class Retain(Resource):
+    def put(self, token):
+        if token:
+            return True
+        else:
+            spreedly_api.abort(404, 'Not retained token {}'.format(token))
+
