@@ -9,7 +9,6 @@ DEV_HOST = env_var("DEV_HOST", "0.0.0.0")
 DEV_PORT = env_var("DEV_PORT", "5050")
 DEBUG = env_var("DEBUG", False)
 
-DATADOG_ENV = env_var('DATADOG_ENV')
 
 REDIS_PASSWORD = env_var('REDIS_PASSWORD', '')
 REDIS_HOST = env_var('REDIS_HOST', 'localhost')
