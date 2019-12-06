@@ -1,6 +1,6 @@
 from flask_restplus import Namespace, Resource
 
-from app.fixtures.spreedly import deliver_data, export_data, retain_data
+from app.fixtures.spreedly import deliver_data, export_data
 
 spreedly_api = Namespace('spreedly', description='Spreedly related operations')
 
@@ -30,4 +30,3 @@ class Retain(Resource):
             return True
         else:
             spreedly_api.abort(404, 'Not retained token {}'.format(token))
-
