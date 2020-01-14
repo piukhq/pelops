@@ -1,3 +1,4 @@
+from flask import Response
 from flask_restplus import Namespace, Resource
 
 from app.fixtures.spreedly import deliver_data, export_data
@@ -9,7 +10,7 @@ spreedly_api = Namespace('spreedly', description='Spreedly related operations')
 class Deliver(Resource):
     def post(self, token):
         if token in deliver_data:
-            return deliver_data[token]
+            return Response(deliver_data[token], mimetype='text/xml')
         else:
             spreedly_api.abort(404, 'No deliver data for token {}'.format(token))
 
@@ -18,7 +19,7 @@ class Deliver(Resource):
 class Export(Resource):
     def post(self, token):
         if token in export_data:
-            return export_data[token]
+            return Response(export_data[token], mimetype='text/xml')
         else:
             spreedly_api.abort(404, 'No export data for token {}'.format(token))
 
