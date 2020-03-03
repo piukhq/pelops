@@ -1,19 +1,10 @@
 {
     "_meta": {
         "hash": {
-<<<<<<< HEAD
             "sha256": "a7e91c78b9d6eb471daaa7c02bd21e272aa6d817edfeed2c40a5000a72af1be1"
         },
         "pipfile-spec": 6,
         "requires": {},
-=======
-            "sha256": "fb02751793cad03d93127237b34b1d3e086af772aff6fe0c443f6a7179be16fa"
-        },
-        "pipfile-spec": 6,
-        "requires": {
-            "python_version": "3.7"
-        },
->>>>>>> Add retain endpoint, remove Datadog, update to gunicorn
         "sources": [
             {
                 "name": "pypi",

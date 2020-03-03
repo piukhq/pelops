@@ -4,4 +4,6 @@ WORKDIR /app
 ADD . .
 
 RUN pip install pipenv gunicorn && \
-    pipenv install --system --deploy --ignore-pipfile && \
+    pipenv install --system --deploy --ignore-pipfile
+
+CMD ["/usr/local/bin/gunicorn", "-c", "gunicorn.py", "wsgi:app"]
