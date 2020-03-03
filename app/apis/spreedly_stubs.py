@@ -45,8 +45,8 @@ class Retain(Resource):
             spreedly_api.abort(404, 'Not retained token {}'.format(token))
 
 
-@spreedly_api.route('/v1/gateways/<gateway_token>/authorize.json')
-class PaymentAuthorisation(Resource):
+@spreedly_api.route('/v1/gateways/<gateway_token>/purchase.json')
+class PaymentPurchase(Resource):
     def post(self, gateway_token):
         request_json = request.get_json()
 
@@ -65,7 +65,11 @@ class PaymentAuthorisation(Resource):
             resp = {
                 "transaction": {
                     "token": str(uuid4()),
-                    "succeeded": True
+                    "succeeded": True,
+                    "response": {
+                        "message": "",
+                        "error_code": 0
+                    }
                 }
             }
             file_data['transaction_tokens'].append(resp['transaction']['token'])
@@ -82,7 +86,11 @@ class PaymentAuthorisation(Resource):
             resp = {
                 "transaction": {
                     "token": str(uuid4()),
-                    "succeeded": False
+                    "succeeded": False,
+                    "response": {
+                        "message": "",
+                        "error_code": 0
+                    }
                 }
             }
 
@@ -99,9 +107,25 @@ class PaymentVoid(Resource):
             file_data = {"payment_tokens": [], "transaction_tokens": []}
 
         if transaction_token in file_data['transaction_tokens']:
-            resp = {"transaction": {"succeeded": True}}
+            resp = {
+                "transaction": {
+                    "succeeded": True,
+                    "response": {
+                        "message": "",
+                        "error_code": 0
+                    }
+                }
+            }
         else:
-            resp = {"transaction": {"succeeded": False}}
+            resp = {
+                "transaction": {
+                    "succeeded": False,
+                    "response": {
+                        "message": "",
+                        "error_code": 0
+                    }
+                }
+            }
 
         return jsonify(resp)
 
