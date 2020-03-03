@@ -2,10 +2,6 @@ import json
 from uuid import uuid4
 
 from flask import request, jsonify, Response
-import json
-from uuid import uuid4
-
-from flask import request, jsonify, Response
 from flask_restplus import Namespace, Resource
 
 from app.apis.storage import Redis
