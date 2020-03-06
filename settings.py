@@ -14,7 +14,9 @@ REDIS_PASSWORD = env_var('REDIS_PASSWORD', '')
 REDIS_HOST = env_var('REDIS_HOST', 'localhost')
 REDIS_PORT = env_var('REDIS_PORT', '6379')
 REDIS_DB = env_var('REDIS_DB', '0')
-REDIS_URL = 'redis://:{password}@{host}:{port}/{db}'.format(**{
+REDIS_PROTOCOL = env_var('REDIS_PROTOCOL', 'redis')
+REDIS_URL = '{protocol}://:{password}@{host}:{port}/{db}'.format(**{
+    'protocol': REDIS_PROTOCOL,
     'password': REDIS_PASSWORD,
     'host': REDIS_HOST,
     'port': REDIS_PORT,
