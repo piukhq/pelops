@@ -15,4 +15,19 @@ class Healthz(Resource):
         return ''
 
 
+class VopActivate(Resource):
+
+    def post(self):
+        return {
+            "activationId": "88395654-0b8a-4f2d-9046-2b8669f76bd2",
+            "correlationId": "96e38ed5-91d5-4567-82e9-6c441f4ca300",
+            "responseDateTime": "2020-01-30T11:13:43.5765614Z",
+            "responseStatus": {
+                "code": "SUCCESS",
+                "message": "Request proceed successfully without error."
+            }
+        }, 201
+
+
 stub_api.add_resource(Healthz, '/healthz')
+stub_api.add_resource(VopActivate, '/vop/v1/activations/merchant')
