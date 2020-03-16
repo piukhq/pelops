@@ -1,5 +1,7 @@
 from flask_restplus import Api, Resource
+from flask import request
 from app.apis.spreedly_stubs import spreedly_api as sp1
+from settings import logger
 
 stub_api = Api(ui=False,
                title="Bink Stubbing API - Pelops",
@@ -18,6 +20,8 @@ class Healthz(Resource):
 class VopActivate(Resource):
 
     def post(self):
+        data = request.get_json()
+        logger.info(f"request:  /vop/v1/activations/merchant  body: {data}")
         return {
             "activationId": "88395654-0b8a-4f2d-9046-2b8669f76bd2",
             "correlationId": "96e38ed5-91d5-4567-82e9-6c441f4ca300",

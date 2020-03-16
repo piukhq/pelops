@@ -7,6 +7,7 @@ from flask_restplus import Namespace, Resource
 from app.apis.storage import Redis
 from app.fixtures.spreedly import deliver_data, export_data
 from settings import REDIS_URL
+from settings import logger
 
 spreedly_api = Namespace('spreedly', description='Spreedly related operations')
 storage = Redis(url=REDIS_URL)
@@ -17,8 +18,21 @@ PAYMENT_TOKEN_FILEPATH = 'app/fixtures/payment.json'
 @spreedly_api.route('/receivers/<token>/deliver.xml')
 class Deliver(Resource):
     def post(self, token):
+        data = request.get_json()
+        logger.info(f"request  /receivers/{token}/deliver.xml body:{data}")
         if token in deliver_data:
             return Response(deliver_data[token], mimetype='text/xml')
+        else:
+            spreedly_api.abort(404, 'No deliver data for token {}'.format(token))
+
+
+@spreedly_api.route('/receivers/<token>/deliver.json')
+class DeliverJson(Resource):
+    def post(self, token):
+        data = request.get_json()
+        logger.info(f"request /receivers/{token}/deliver.json  body: {data}")
+        if token in deliver_data:
+            return Response(deliver_data[token], mimetype='application/json')
         else:
             spreedly_api.abort(404, 'No deliver data for token {}'.format(token))
 
