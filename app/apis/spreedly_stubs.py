@@ -32,7 +32,7 @@ class DeliverJson(Resource):
         data = request.get_json()
         logger.info(f"request /receivers/{token}/deliver.json  body: {data}")
         if token in deliver_data:
-            return Response(deliver_data[token], mimetype='application/json')
+            return Response(json.dumps(deliver_data[token]), mimetype='application/json')
         else:
             spreedly_api.abort(404, 'No deliver data for token {}'.format(token))
 
@@ -49,10 +49,13 @@ class Export(Resource):
 @spreedly_api.route('/payment_methods/<token>/retain.json')
 class Retain(Resource):
     def put(self, token):
+        #  data = request.get_json()
+        #  logger.info(f"request  /receivers/{token}/deliver.xml body:{data}")
         if token:
             return True
         else:
             spreedly_api.abort(404, 'Not retained token {}'.format(token))
+            logger.info(f"Spreedly api Abort 404 - no retained token")
 
 
 @spreedly_api.route('/v1/gateways/<gateway_token>/purchase.json')
