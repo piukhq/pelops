@@ -12,6 +12,7 @@ spreedly_api = Namespace('spreedly', description='Spreedly related operations')
 storage = Redis(url=REDIS_URL)
 
 PAYMENT_TOKEN_FILEPATH = 'app/fixtures/payment.json'
+VOID_FAILURE_FLAG = "voidfail"
 
 
 @spreedly_api.route('/receivers/<token>/deliver.xml')
@@ -58,9 +59,13 @@ class PaymentPurchase(Resource):
             file_data = {"payment_tokens": [], "transaction_tokens": []}
 
         if input_payment_token in file_data['payment_tokens']:
+            if input_payment_token == VOID_FAILURE_FLAG:
+                transaction_token = VOID_FAILURE_FLAG
+            else:
+                transaction_token = str(uuid4())
             resp = {
                 "transaction": {
-                    "token": str(uuid4()),
+                    "token": transaction_token,
                     "succeeded": True,
                     "response": {
                         "message": "",
@@ -102,7 +107,7 @@ class PaymentVoid(Resource):
         except (json.JSONDecodeError, storage.NotFound):
             file_data = {"payment_tokens": [], "transaction_tokens": []}
 
-        if transaction_token in file_data['transaction_tokens']:
+        if transaction_token in file_data["transaction_tokens"] and transaction_token != VOID_FAILURE_FLAG:
             resp = {
                 "transaction": {
                     "succeeded": True,
