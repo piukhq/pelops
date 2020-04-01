@@ -74,7 +74,7 @@ class PaymentPurchase(Resource):
 
         if input_payment_token in file_data['payment_tokens']:
             transaction_token = str(uuid4())
-            resp = spreedly_token_response(transaction_token, True)
+            resp = spreedly_token_response(transaction_token, has_succeeded=True)
             file_data = {
                 "payment_tokens": [],
                 "transaction_tokens": [transaction_token],
@@ -87,7 +87,7 @@ class PaymentPurchase(Resource):
                 json.dumps(file_data)
             )
         else:
-            resp = spreedly_token_response(str(uuid4()), False)
+            resp = spreedly_token_response(str(uuid4()), has_succeeded=False)
 
         return jsonify(resp)
 
