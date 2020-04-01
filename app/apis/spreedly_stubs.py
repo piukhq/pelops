@@ -11,7 +11,22 @@ from settings import REDIS_URL
 spreedly_api = Namespace('spreedly', description='Spreedly related operations')
 storage = Redis(url=REDIS_URL)
 
+DEFAULT_FILE_DATA = {"payment_tokens": [], "transaction_tokens": [], "void_fail_tokens": []}
 PAYMENT_TOKEN_FILEPATH = 'app/fixtures/payment.json'
+VOID_FAILURE_FLAG = "voidfail"
+
+
+def spreedly_token_response(transaction_token, has_succeeded):
+    return {
+        "transaction": {
+            "token": transaction_token,
+            "succeeded": has_succeeded,
+            "response": {
+                "message": "",
+                "error_code": 0
+            }
+        }
+    }
 
 
 @spreedly_api.route('/receivers/<token>/deliver.xml')
@@ -55,40 +70,24 @@ class PaymentPurchase(Resource):
         try:
             file_data = json.loads(storage.get(token_storage_key))
         except (json.JSONDecodeError, storage.NotFound):
-            file_data = {"payment_tokens": [], "transaction_tokens": []}
+            file_data = DEFAULT_FILE_DATA
 
         if input_payment_token in file_data['payment_tokens']:
-            resp = {
-                "transaction": {
-                    "token": str(uuid4()),
-                    "succeeded": True,
-                    "response": {
-                        "message": "",
-                        "error_code": 0
-                    }
-                }
-            }
-            file_data['transaction_tokens'].append(resp['transaction']['token'])
+            transaction_token = str(uuid4())
+            resp = spreedly_token_response(transaction_token, has_succeeded=True)
             file_data = {
                 "payment_tokens": [],
-                "transaction_tokens": [resp['transaction']['token']]
+                "transaction_tokens": [transaction_token],
+                "void_fail_tokens": []
             }
+            if input_payment_token == VOID_FAILURE_FLAG:
+                file_data['void_fail_tokens'] = [transaction_token]
             storage.set(
                 token_storage_key,
-                json.dumps({"payment_tokens": file_data['payment_tokens'],
-                            "transaction_tokens": file_data['transaction_tokens']})
+                json.dumps(file_data)
             )
         else:
-            resp = {
-                "transaction": {
-                    "token": str(uuid4()),
-                    "succeeded": False,
-                    "response": {
-                        "message": "",
-                        "error_code": 0
-                    }
-                }
-            }
+            resp = spreedly_token_response(str(uuid4()), has_succeeded=False)
 
         return jsonify(resp)
 
@@ -100,9 +99,10 @@ class PaymentVoid(Resource):
         try:
             file_data = json.loads(storage.get(token_storage_key))
         except (json.JSONDecodeError, storage.NotFound):
-            file_data = {"payment_tokens": [], "transaction_tokens": []}
+            file_data = DEFAULT_FILE_DATA
 
-        if transaction_token in file_data['transaction_tokens']:
+        void_fail = transaction_token in file_data["void_fail_tokens"]
+        if transaction_token in file_data["transaction_tokens"] and not void_fail:
             resp = {
                 "transaction": {
                     "succeeded": True,
