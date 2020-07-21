@@ -33,5 +33,21 @@ class VopActivate(Resource):
         }, 201
 
 
+class VopDeactivate(Resource):
+
+    def post(self):
+        data = request.get_json()
+        logger.info(f"request:  vop/v1/deactivations/merchant  body: {data}")
+        return {
+            "correlationId": "96e38ed5-91d5-4567-82e9-6c441f4ca300",
+            "responseDateTime": "2020-01-30T11:13:43.5765614Z",
+            "responseStatus": {
+                "code": "SUCCESS",
+                "message": "Request proceed successfully without error."
+            }
+        }, 201
+
+
 stub_api.add_resource(Healthz, '/healthz')
 stub_api.add_resource(VopActivate, '/vop/v1/activations/merchant')
+stub_api.add_resource(VopDeactivate, '/vop/v1/deactivations/merchant')
