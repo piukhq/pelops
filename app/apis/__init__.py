@@ -48,6 +48,22 @@ class VopDeactivate(Resource):
         }, 201
 
 
+class VopUnenroll(Resource):
+
+    def post(self):
+        data = request.get_json()
+        logger.info(f"request:  /vop/v1/users/unenroll  body: {data}")
+        return {
+            "correlationId": "ce708e6a-fd5f-48cc-b9ff-ce518a6fda1a",
+            "responseDateTime": "2020-01-29T15:02:50.8109336Z",
+            "responseStatus": {
+                "code": "SUCCESS",
+                "message": "Request proceed successfully without error."
+            }
+        }, 201
+
+
 stub_api.add_resource(Healthz, '/healthz')
 stub_api.add_resource(VopActivate, '/vop/v1/activations/merchant')
 stub_api.add_resource(VopDeactivate, '/vop/v1/deactivations/merchant')
+stub_api.add_resource(VopUnenroll, '/vop/v1/users/unenroll')
