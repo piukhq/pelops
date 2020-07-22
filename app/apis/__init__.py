@@ -22,15 +22,29 @@ class VopActivate(Resource):
     def post(self):
         data = request.get_json()
         logger.info(f"request:  /vop/v1/activations/merchant  body: {data}")
-        return {
-            "activationId": "88395654-0b8a-4f2d-9046-2b8669f76bd2",
-            "correlationId": "96e38ed5-91d5-4567-82e9-6c441f4ca300",
-            "responseDateTime": "2020-01-30T11:13:43.5765614Z",
-            "responseStatus": {
-                "code": "SUCCESS",
-                "message": "Request proceed successfully without error."
-            }
-        }, 201
+        if data['UserKey'][0:6] == "ERRACT_":
+            error_code = data['UserKey'][7:]
+            return {
+                       "activationId": "88395654-0b8a-4f2d-9046-2b8669f76bd2",
+                       "correlationId": "96e38ed5-91d5-4567-82e9-6c441f4ca300",
+                       "responseDateTime": "2020-01-30T11:13:43.5765614Z",
+                       "responseStatus": {
+                           "code": error_code,
+                           "message": "VOP Activate failure message.",
+                           "responseStatusDetails": []
+                       }
+                   }, 200
+
+        else:
+            return {
+                       "activationId": "88395654-0b8a-4f2d-9046-2b8669f76bd2",
+                       "correlationId": "96e38ed5-91d5-4567-82e9-6c441f4ca300",
+                       "responseDateTime": "2020-01-30T11:13:43.5765614Z",
+                       "responseStatus": {
+                           "code": "SUCCESS",
+                           "message": "Request proceed successfully without error."
+                       }
+                   }, 201
 
 
 class VopDeactivate(Resource):
@@ -38,6 +52,20 @@ class VopDeactivate(Resource):
     def post(self):
         data = request.get_json()
         logger.info(f"request:  vop/v1/deactivations/merchant  body: {data}")
+        if data['UserKey'][0:6] == "ERDACT_":
+            error_code = data['UserKey'][7:]
+            return {
+                       "activationId": "88395654-0b8a-4f2d-9046-2b8669f76bd2",
+                       "correlationId": "96e38ed5-91d5-4567-82e9-6c441f4ca300",
+                       "responseDateTime": "2020-01-30T11:13:43.5765614Z",
+                       "responseStatus": {
+                           "code": error_code,
+                           "message": "VOP DeActivate failure message.",
+                           "responseStatusDetails": []
+                       }
+                   }, 200
+
+        else:
         return {
             "correlationId": "96e38ed5-91d5-4567-82e9-6c441f4ca300",
             "responseDateTime": "2020-01-30T11:13:43.5765614Z",
@@ -53,14 +81,27 @@ class VopUnenroll(Resource):
     def post(self):
         data = request.get_json()
         logger.info(f"request:  /vop/v1/users/unenroll  body: {data}")
-        return {
-            "correlationId": "ce708e6a-fd5f-48cc-b9ff-ce518a6fda1a",
-            "responseDateTime": "2020-01-29T15:02:50.8109336Z",
-            "responseStatus": {
-                "code": "SUCCESS",
-                "message": "Request proceed successfully without error."
-            }
-        }, 201
+        if data['UserKey'][0:6] == "ERRDEL_":
+            error_code = data['UserKey'][7:]
+            return {
+                       "correlationId": "ce708e6a-fd5f-48cc-b9ff-ce518a6fda1a",
+                       "responseDateTime": "2020-01-29T15:02:50.8109336Z",
+                       "responseStatus": {
+                           "code": error_code,
+                           "message": "VOP Unenroll failure message.",
+                           "responseStatusDetails": []
+                       }
+                   }, 200
+
+        else:
+            return {
+                "correlationId": "ce708e6a-fd5f-48cc-b9ff-ce518a6fda1a",
+                "responseDateTime": "2020-01-29T15:02:50.8109336Z",
+                "responseStatus": {
+                    "code": "SUCCESS",
+                    "message": "Request proceed successfully without error."
+                }
+            }, 201
 
 
 stub_api.add_resource(Healthz, '/healthz')
