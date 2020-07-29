@@ -66,14 +66,14 @@ class VopDeactivate(Resource):
                    }, 200
 
         else:
-        return {
-            "correlationId": "96e38ed5-91d5-4567-82e9-6c441f4ca300",
-            "responseDateTime": "2020-01-30T11:13:43.5765614Z",
-            "responseStatus": {
-                "code": "SUCCESS",
-                "message": "Request proceed successfully without error."
-            }
-        }, 201
+            return {
+                "correlationId": "96e38ed5-91d5-4567-82e9-6c441f4ca300",
+                "responseDateTime": "2020-01-30T11:13:43.5765614Z",
+                "responseStatus": {
+                    "code": "SUCCESS",
+                    "message": "Request proceed successfully without error."
+                }
+            }, 201
 
 
 class VopUnenroll(Resource):
