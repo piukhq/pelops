@@ -7,6 +7,7 @@ from flask_restplus import Namespace, Resource
 from app.apis.storage import Redis
 from app.fixtures.spreedly import deliver_data, export_data
 from settings import REDIS_URL
+from settings import logger
 
 spreedly_api = Namespace('spreedly', description='Spreedly related operations')
 storage = Redis(url=REDIS_URL)
@@ -32,8 +33,21 @@ def spreedly_token_response(transaction_token, has_succeeded):
 @spreedly_api.route('/receivers/<token>/deliver.xml')
 class Deliver(Resource):
     def post(self, token):
+        data = request.get_json()
+        logger.info(f"request  /receivers/{token}/deliver.xml body:{data}")
         if token in deliver_data:
             return Response(deliver_data[token], mimetype='text/xml')
+        else:
+            spreedly_api.abort(404, 'No deliver data for token {}'.format(token))
+
+
+@spreedly_api.route('/receivers/<token>/deliver.json')
+class DeliverJson(Resource):
+    def post(self, token):
+        data = request.get_json()
+        logger.info(f"request /receivers/{token}/deliver.json  body: {data}")
+        if token in deliver_data:
+            return Response(json.dumps(deliver_data[token]), mimetype='application/json')
         else:
             spreedly_api.abort(404, 'No deliver data for token {}'.format(token))
 
@@ -50,10 +64,13 @@ class Export(Resource):
 @spreedly_api.route('/payment_methods/<token>/retain.json')
 class Retain(Resource):
     def put(self, token):
+        #  data = request.get_json()
+        #  logger.info(f"request  /receivers/{token}/deliver.xml body:{data}")
         if token:
             return True
         else:
             spreedly_api.abort(404, 'Not retained token {}'.format(token))
+            logger.info(f"Spreedly api Abort 404 - no retained token")
 
 
 @spreedly_api.route('/v1/gateways/<gateway_token>/purchase.json')

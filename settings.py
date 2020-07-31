@@ -1,4 +1,5 @@
 from environment import env_var, read_env
+import logging
 
 
 SECRET_KEY = b'\xa2\xaeY9>\xda=;\xcc\x7f\x05\xf6\x94.\x93~\xb16\x8e%2\x01\x83\x10'
@@ -22,3 +23,9 @@ REDIS_URL = '{protocol}://:{password}@{host}:{port}/{db}'.format(**{
     'port': REDIS_PORT,
     'db': REDIS_DB
 })
+
+
+# Logging settings
+logging.basicConfig(format='%(process)s %(asctime)s %(levelname)s %(message)s')
+logger = logging.getLogger('pelops_logger')
+logger.setLevel(logging.DEBUG)
