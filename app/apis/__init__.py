@@ -23,7 +23,7 @@ class VopActivate(Resource):
         data = request.get_json()
         logger.info(f"request:  /vop/v1/activations/merchant  body: {data}")
         user_key = data.get('userKey')
-        if len(user_key) > 7 and user_key[0:6] == "ERRACT_":
+        if len(user_key) > 7 and user_key[0:7] == "ERRACT_":
             error_code = user_key[7:]
             return {
                        "activationId": "88395654-0b8a-4f2d-9046-2b8669f76bd2",
@@ -54,8 +54,8 @@ class VopDeactivate(Resource):
         data = request.get_json()
         logger.info(f"request:  vop/v1/deactivations/merchant  body: {data}")
         user_key = data.get('userKey')
-        if len(user_key) > 7 and user_key[0:6] == "ERDACT_":
-            error_code = data['UserKey'][7:]
+        if len(user_key) > 7 and user_key[0:7] == "ERDACT_":
+            error_code = user_key[7:]
             return {
                        "activationId": "88395654-0b8a-4f2d-9046-2b8669f76bd2",
                        "correlationId": "96e38ed5-91d5-4567-82e9-6c441f4ca300",
@@ -86,7 +86,7 @@ class VopUnenroll(Resource):
         user_key = ""
         if data:
             user_key = data.get('userKey')
-        if len(user_key) > 7 and user_key[0:6] == "ERRDEL_":
+        if len(user_key) > 7 and user_key[0:7] == "ERRDEL_":
             error_code = user_key[7:]
             return {
                        "correlationId": "ce708e6a-fd5f-48cc-b9ff-ce518a6fda1a",
