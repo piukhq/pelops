@@ -87,11 +87,22 @@ deliver_data = {
             "created_at": "2020-08-14T15:10:35Z",
             "updated_at": "2020-08-14T15:10:36Z",
             "succeeded": False,
-            "message": "Delivery/Export to receiver endpoint returned with an error response code. Check the transaction transcript for more detail.",
+            "message": "Delivery/Export to receiver endpoint returned with an error response code. "
+                       "Check the transaction transcript for more detail.",
             "url": "https://cert.api.visa.com/vop/v1/users/enroll",
             "response": {
                 "status": 400,
-                "headers": "Server: nginx\r\nDate: Fri, 14 Aug 2020 15:10:36 GMT\r\nContent-Type: application/json;charset=utf-8\r\nContent-Length: 293\r\nConnection: keep-alive\r\nX-SERVED-BY: l73p041\r\nX-CORRELATION-ID: 1597417835_950_1977034855_l73p041_VDP_WS\r\nX-Backside-Transport: FAIL FAIL,FAIL FAIL\r\nCache-Control: no-cache ,no-cache, no-store, must-revalidate\r\nPragma: no-cache\r\nExpires: -1\r\nX-Powered-By: ASP.NET\r\nStrict-Transport-Security: max-age=31536000 ,max-age=2592000;includeSubdomains\r\nX-Global-Transaction-ID: 448482cb5f36a96c87125e09\r\nX-APP-STATUS: 400\r\nX-Frame-Options: SAMEORIGIN\r\nX-XSS-Protection: 1; mode=block\r\nX-Content-Type-Options: nosniff\r\nX-Cnection: close",
+                "headers": "Server: nginx\r\nDate: Fri, 14 Aug 2020 15:10:36 GMT\r\n"
+                           "Content-Type: application/json;charset=utf-8\r\nContent-Length: 293\r\n"
+                           "Connection: keep-alive\r\nX-SERVED-BY: l73p041\r\n"
+                           "X-CORRELATION-ID: 1597417835_950_1977034855_l73p041_VDP_WS\r\n"
+                           "X-Backside-Transport: FAIL FAIL,FAIL FAIL\r\n"
+                           "Cache-Control: no-cache ,no-cache, no-store, must-revalidate\r\n"
+                           "Pragma: no-cache\r\nExpires: -1\r\nX-Powered-By: ASP.NET\r\n"
+                           "Strict-Transport-Security: max-age=31536000 ,max-age=2592000;includeSubdomains\r\n"
+                           "X-Global-Transaction-ID: 448482cb5f36a96c87125e09\r\nX-APP-STATUS: 400\r\n"
+                           "-Frame-Options: SAMEORIGIN\r\nX-XSS-Protection: 1; mode=block\r\n"
+                           "X-Content-Type-Options: nosniff\r\nX-Cnection: close",
                 "body": """
 {
     "correlationId":"033440aa-9e91-43ed-8d15-6b27df9ed866",
