@@ -80,43 +80,84 @@ deliver_data = {
                 }
             },
     'visa_error': {
-            "transaction": {
-                "response": {
-                    "status": 400,
-                    "body": """{
-    "userDetails": {
-        "externalUserId": "a74hd93d9812wir0174mk093dkie1",
-        "communityCode": "BINKCTE01",
-        "userId": "809902ef-3c0b-40b8-93bf-63e2621df06f",
-        "userKey": "a74hd93d9812wir0174mk093dkie1",
-        "languageId": "en-US",
-        "timeZoneId": "Pacific Standard Time",
-        "timeZoneShortCode": "PST",
-        "cards": [
-            {
-                "cardId": "bfc33c1d-d4ef-e111-8d48-001a4bcdeef4",
-                "cardLast4": "1111",
-                "productId": "A",
-                "productIdDescription": "Visa Traditional",
-                "productTypeCategory": "Credit",
-                "cardStatus": "New"
-            }
-        ],
-        "userStatus": 1,
-        "enrollDateTime": "2020-01-29T15:02:55.067"
-    },
-    "correlationId": "ce708e6a-fd5f-48cc-b9ff-ce518a6fda1a",
-    "responseDateTime": "2020-01-29T15:02:55.1860039Z",
-    "responseStatus": {
-        "code": "<<error>>",
-        "message": "Request proceeded with error.",
-        "responseStatusDetails": []
-    }
+        "transaction": {
+            "token": "JuWy4n4bIlNsgiU3h5yy6Jd4PVi",
+            "transaction_type": "DeliverPaymentMethod",
+            "state": "failed",
+            "created_at": "2020-08-14T15:10:35Z",
+            "updated_at": "2020-08-14T15:10:36Z",
+            "succeeded": False,
+            "message": "Delivery/Export to receiver endpoint returned with an error response code. Check the transaction transcript for more detail.",
+            "url": "https://cert.api.visa.com/vop/v1/users/enroll",
+            "response": {
+                "status": 400,
+                "headers": "Server: nginx\r\nDate: Fri, 14 Aug 2020 15:10:36 GMT\r\nContent-Type: application/json;charset=utf-8\r\nContent-Length: 293\r\nConnection: keep-alive\r\nX-SERVED-BY: l73p041\r\nX-CORRELATION-ID: 1597417835_950_1977034855_l73p041_VDP_WS\r\nX-Backside-Transport: FAIL FAIL,FAIL FAIL\r\nCache-Control: no-cache ,no-cache, no-store, must-revalidate\r\nPragma: no-cache\r\nExpires: -1\r\nX-Powered-By: ASP.NET\r\nStrict-Transport-Security: max-age=31536000 ,max-age=2592000;includeSubdomains\r\nX-Global-Transaction-ID: 448482cb5f36a96c87125e09\r\nX-APP-STATUS: 400\r\nX-Frame-Options: SAMEORIGIN\r\nX-XSS-Protection: 1; mode=block\r\nX-Content-Type-Options: nosniff\r\nX-Cnection: close",
+                "body": """
+{
+    "correlationId":"033440aa-9e91-43ed-8d15-6b27df9ed866",
+    "responseDateTime":"2020-08-14T15:10:36.4239243Z",
+    "responseStatus":{
+        "code":"VALIDATION_FAILED",
+        "message":"Request validation failed.",
+        "responseStatusDetails":[{
+            "code":"<<error>>",
+            "message": "User Mocked Error trapped by Pelops"}
+        ]}
 }
 """
-                    }
-                }
+            },
+            "receiver": {
+                "company_name": "Bink Visa Cert",
+                "receiver_type": "bink_visa_cert",
+                "token": "7rkxHCRWMFUxbrc4LjLvfBiEHPk",
+                "hostnames": "https://cert.api.visa.com/",
+                "state": "retained",
+                "created_at": "2020-07-23T17:45:54Z",
+                "updated_at": "2020-07-23T17:45:54Z",
+                "credentials": None
+            },
+            "payment_method": {
+                "token": "7I8T8A7bcYarl4Fv4oLkLX5XsCo",
+                "created_at": "2020-07-24T08:04:19Z",
+                "updated_at": "2020-08-14T15:10:28Z",
+                "email": None,
+                "data": None,
+                "storage_state": "retained",
+                "test": False,
+                "metadata": None,
+                "callback_url": None,
+                "last_four_digits": "7103",
+                "first_six_digits": "424242",
+                "card_type": "visa",
+                "first_name": "Mart Staging",
+                "last_name": "Test",
+                "month": 6,
+                "year": 2022,
+                "address1": None,
+                "address2": None,
+                "city": None,
+                "state": None,
+                "zip": None,
+                "country": None,
+                "phone_number": None,
+                "company": None,
+                "full_name": "Mart Staging Test",
+                "eligible_for_card_updater": True,
+                "shipping_address1": None,
+                "shipping_address2": None,
+                "shipping_city": None,
+                "shipping_state": None,
+                "shipping_zip": None,
+                "shipping_country": None,
+                "shipping_phone_number": None,
+                "payment_method_type": "credit_card",
+                "errors": [],
+                "fingerprint": "063fcf0319dcd8ac014867ee0919495276c6",
+                "verification_value": "",
+                "number": "XXXX-XXXX-XXXX-7103"
             }
+        }
+    }
 }
 
 export_data = {
