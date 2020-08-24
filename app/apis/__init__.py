@@ -109,7 +109,20 @@ class VopUnenroll(Resource):
             }, 201
 
 
+class AmexOauth:
+
+    def post(self):
+        data = request.get_json()
+        logger.info(f"amex oath: /apiplatform/v2/oauth/token/mac  body: {data}")
+        return {
+                   "access_token": "Pelops_Amex_test_token",
+                   "mac_key": "Pelops_Amex_Mac_key"
+               }, 201
+
+
 stub_api.add_resource(Healthz, '/healthz')
 stub_api.add_resource(VopActivate, '/vop/v1/activations/merchant')
 stub_api.add_resource(VopDeactivate, '/vop/v1/deactivations/merchant')
 stub_api.add_resource(VopUnenroll, '/vop/v1/users/unenroll')
+
+stub_api.add_resource(AmexOauth, '/apiplatform/v2/oauth/token/mac')
