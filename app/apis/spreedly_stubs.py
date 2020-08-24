@@ -46,6 +46,14 @@ class DeliverJson(Resource):
     def post(self, token):
         data = request.get_json()
         logger.info(f"request /receivers/{token}/deliver.json  body: {data}")
+        delivery = data.get('delivery', {})
+        pay_token = delivery.get('payment_method_token', "")
+        if token == 'visa' and len(pay_token) > 7 and pay_token[0:7] == 'ERRADD_':
+            error_return = pay_token[7:]
+            resp_data = deliver_data['visa_error']
+            resp_data["transaction"]["response"]["body"] = resp_data["transaction"]["response"]["body"]\
+                .replace("<<error>>", error_return)
+            return Response(json.dumps(resp_data), mimetype='application/json')
         if token in deliver_data:
             return Response(json.dumps(deliver_data[token]), mimetype='application/json')
         else:
