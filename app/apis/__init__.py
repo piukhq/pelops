@@ -109,7 +109,7 @@ class VopUnenroll(Resource):
             }, 201
 
 
-class AmexOauth:
+class AmexOauth(Resource):
 
     def post(self):
         data = request.get_json()
