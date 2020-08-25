@@ -1,15 +1,17 @@
 stages:
   - tests
   - build
-  - deploy
+  - tagging
 
 complexity:
   stage: tests
+  image: olympus.azurecr.io/python:3.7
   script:
     - xenon --max-average A --max-modules B --max-absolute B .
 
 flake8:
   stage: tests
+  image: olympus.azurecr.io/python:3.7
   script:
     - flake8 *
 
@@ -26,6 +28,16 @@ build-develop:
   only:
     - develop
 
+tag-develop:
+  stage: tagging
+  image: binkops.azurecr.io/tagbot:latest
+  environment:
+    name: dev
+  script:
+    - tagbot --username "$CI_REGISTRY_USER" --password "$CI_REGISTRY_PASSWORD" --source "$CI_REGISTRY/pelops:latest" --tag "develop-$CI_COMMIT_SHORT_SHA"
+  only:
+    - develop
+
 build-master:
   stage: build
   image: docker:latest
@@ -39,22 +51,12 @@ build-master:
   only:
     - tags
 
-deploy-dev:
-  stage: deploy
-  image: binkops.azurecr.io/kubedeployer:latest
-  environment: dev
+tag-staging:
+  stage: tagging
+  image: binkops.azurecr.io/tagbot:latest
+  environment:
+    name: staging
   script:
-    - kubectl config use-context dev
-    - kubectl delete po $(kubectl get po --no-headers=true -l run=pelops -o custom-columns=:metadata.name)
-  only:
-    - develop
-
-deploy-staging:
-  stage: deploy
-  image: binkops.azurecr.io/kubedeployer:latest
-  environment: staging
-  script:
-    - kubectl config use-context staging
-    - kubectl set image deployment/pelops pelops=olympus.azurecr.io/pelops:$CI_COMMIT_TAG
+    - tagbot --username "$CI_REGISTRY_USER" --password "$CI_REGISTRY_PASSWORD" --source "$CI_REGISTRY/pelops:$CI_COMMIT_TAG" --tag "staging-$CI_COMMIT_TAG"
   only:
     - tags
