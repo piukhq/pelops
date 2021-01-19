@@ -9,6 +9,8 @@ from app.fixtures.spreedly import deliver_data, export_data
 from settings import REDIS_URL
 from settings import logger
 
+from .psp_token import check_token
+
 spreedly_api = Namespace('spreedly', description='Spreedly related operations')
 storage = Redis(url=REDIS_URL)
 
@@ -30,11 +32,17 @@ def spreedly_token_response(transaction_token, has_succeeded):
     }
 
 
+def get_request_token(method, request_info):
+    data = request.get_json()
+    delivery = data.get('delivery', {})
+    psp_token = delivery.get('payment_method_token', "")
+    logger.info(f"{method} request {request_info}  body:{data}")
+    return psp_token
+
+
 @spreedly_api.route('/receivers/<token>/deliver.xml')
 class Deliver(Resource):
     def post(self, token):
-        data = request.get_json()
-        logger.info(f"request  /receivers/{token}/deliver.xml body:{data}")
         if token in deliver_data:
             return Response(deliver_data[token], mimetype='text/xml')
         else:
@@ -44,20 +52,25 @@ class Deliver(Resource):
 @spreedly_api.route('/receivers/<token>/deliver.json')
 class DeliverJson(Resource):
     def post(self, token):
-        data = request.get_json()
-        logger.info(f"request /receivers/{token}/deliver.json  body: {data}")
-        delivery = data.get('delivery', {})
-        pay_token = delivery.get('payment_method_token', "")
-        if token == 'visa' and len(pay_token) > 7 and pay_token[0:7] == 'ERRADD_':
-            error_return = pay_token[7:]
-            resp_data = deliver_data['visa_error']
-            resp_data["transaction"]["response"]["body"] = resp_data["transaction"]["response"]["body"]\
-                .replace("<<error>>", error_return)
-            return Response(json.dumps(resp_data), mimetype='application/json')
-        if token in deliver_data:
-            return Response(json.dumps(deliver_data[token]), mimetype='application/json')
+        if token == 'visa':
+            psp_token = get_request_token('POST', f'/receivers/{token}/deliver.json')
+            active, error_type, code, unique_token = check_token('ADD', psp_token)
+            if active:
+                if error_type:
+                    resp_data = deliver_data['visa_error']
+                    resp_data["transaction"]["response"]["body"] = resp_data["transaction"]["response"]["body"]\
+                        .replace("<<error>>", code)
+                    return Response(json.dumps(resp_data), mimetype='application/json')
+                else:
+                    if not code:
+                        code = 404
+                    spreedly_api.abort(code, f'No deliver data for Visa simulated psp token {unique_token}'
+                                             f' - psp token in request {psp_token}')
+            else:
+                return Response(json.dumps(deliver_data[token]), mimetype='application/json')
         else:
-            spreedly_api.abort(404, 'No deliver data for token {}'.format(token))
+            spreedly_api.abort(404, 'request made to deliver.json requires a visa token i.e. '
+                                    'Pelops only supports json format for VISA (VOP)')
 
 
 @spreedly_api.route('/receivers/<token>/export.xml')
@@ -69,16 +82,17 @@ class Export(Resource):
             spreedly_api.abort(404, 'No export data for token {}'.format(token))
 
 
-@spreedly_api.route('/payment_methods/<token>/retain.json')
+@spreedly_api.route('/payment_methods/<psp_token>/retain.json')
 class Retain(Resource):
-    def put(self, token):
-        #  data = request.get_json()
-        #  logger.info(f"request  /receivers/{token}/deliver.xml body:{data}")
-        if token:
+    def put(self, psp_token):
+        active, error_type, code, _ = check_token('RET', psp_token)
+        if not active:
             return True
         else:
-            spreedly_api.abort(404, 'Not retained token {}'.format(token))
-            logger.info(f"Spreedly api Abort 404 - no retained token")
+            if error_type:      # We want to ignore payment error strings if set for retain ie we might use xxx
+                code = 404
+            spreedly_api.abort(code, f'Not retained token {psp_token}')
+            logger.info(f"Spreedly api Abort {code} - token {psp_token} not retained")
 
 
 @spreedly_api.route('/v1/gateways/<gateway_token>/purchase.json')
