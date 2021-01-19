@@ -7,6 +7,39 @@ from .storage import Redis
 storage = Redis(url=REDIS_URL)
 
 
+def split_psp_token(psp_token: str) -> tuple:
+    token_type = None
+    error_times = 0
+    error_code = False
+    error_delay = 0
+    pay_error = ""
+
+    if len(psp_token) > 7:
+        trigger = psp_token[0:3]
+        try:
+            token_type = ("ERR", "REQ").index(trigger)
+        except ValueError:
+            token_type = None
+
+    unique_token = psp_token
+    items = [""]
+    if token_type == 0:
+        items = psp_token[3:].split('_', 1)
+        error_code = items[1]
+        pay_error = 1
+    elif token_type == 1:
+        items = psp_token[3:].split('_', 5)
+        error_code = items[1]
+        if error_code.isdigit():
+            error_code = int(error_code)
+        pay_error = int(items[2])
+        error_times = int(items[3])
+        error_delay = int(items[4])
+        unique_token = items[5]
+
+    return pay_error, token_type, error_times, error_code, error_delay, unique_token, items[0]
+
+
 def check_token(action_code: str, psp_token: str) -> tuple:
     """
     The action_code passed in must match the code in the token to activate the check
@@ -66,36 +99,10 @@ def check_token(action_code: str, psp_token: str) -> tuple:
     :param psp_token:    psp token ie payment token retained by Spreedly
     :return: tuple ( ErrorActive:bool , Pay_error:bool, error_code: string, unique_token_part:string)
     """
-    token_type = None
-    error_times = 0
-    error_code = False
-    error_delay = 0
-    pay_error = ""
 
-    if len(psp_token) > 7:
-        trigger = psp_token[0:3]
-        try:
-            token_type = ("ERR", "REQ").index(trigger)
-        except ValueError:
-            token_type = None
+    pay_error, token_type, error_times, error_code, error_delay, unique_token, token_action = split_psp_token(psp_token)
 
-    unique_token = psp_token
-    items = [""]
-    if token_type == 0:
-        items = psp_token[3:].split('_', 1)
-        error_code = items[1]
-        pay_error = 1
-    elif token_type == 1:
-        items = psp_token[3:].split('_', 5)
-        error_code = items[1]
-        if error_code.isdigit():
-            error_code = int(error_code)
-        pay_error = int(items[2])
-        error_times = int(items[3])
-        error_delay = int(items[4])
-        unique_token = items[5]
-
-    if items[0] != action_code:
+    if token_action != action_code:
         return False, pay_error, error_code, unique_token
 
     if token_type == 0:
