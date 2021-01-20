@@ -7,7 +7,6 @@ from flask_restplus import Namespace, Resource
 from app.apis.storage import Redis
 from app.fixtures.spreedly import deliver_data, export_data
 from settings import REDIS_URL, logger
-
 from .psp_token import check_token
 
 spreedly_api = Namespace('spreedly', description='Spreedly related operations')
@@ -39,7 +38,7 @@ def get_request_token(method, request_info):
 @spreedly_api.route('/receivers/<token>/deliver.xml')
 class Deliver(Resource):
     def post(self, token):
-        logger.info(f"request  /receivers/{token}/deliver.xml body:{data}")
+        logger.info(f"request  /receivers/{token}/deliver.xml")
         if token in deliver_data:
             return Response(deliver_data[token], mimetype="text/xml")
         else:

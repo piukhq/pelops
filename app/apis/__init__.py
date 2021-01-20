@@ -3,8 +3,8 @@ from flask import request
 from flask_restplus import Api, Resource
 
 from app.apis.spreedly_stubs import spreedly_api as sp1
-from .psp_token import check_token
 from settings import REDIS_URL, logger
+from .psp_token import check_token
 
 stub_api = Api(
     ui=False,
