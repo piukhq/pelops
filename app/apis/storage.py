@@ -15,6 +15,9 @@ class Redis:
     def set(self, key, value):
         self.store.set(self._key(key), value)
 
+    def set_expire(self, key, value, expire=600):
+        self.store.setex(self._key(key), expire, value)
+
     def get(self, key):
         val = self.store.get(self._key(key))
         if not val:
