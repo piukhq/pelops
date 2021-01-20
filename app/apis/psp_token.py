@@ -9,10 +9,10 @@ storage = Redis(url=REDIS_URL)
 
 def split_psp_token(psp_token: str) -> tuple:
     token_type = None
+    pay_error = None
     error_times = 0
     error_code = False
     error_delay = 0
-    pay_error = ""
 
     if len(psp_token) > 7:
         trigger = psp_token[0:3]

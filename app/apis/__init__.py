@@ -151,7 +151,10 @@ class AmexOauth(Resource):
     def post(self):
         data = request.get_json()
         logger.info(f"amex oath: /apiplatform/v2/oauth/token/mac  body: {data}")
-        return {"access_token": "Pelops_Amex_test_token", "mac_key": "Pelops_Amex_Mac_key"}, 201
+        return {
+                   "access_token": "Pelops_Amex_test_token",
+                   "mac_key": "Pelops_Amex_Mac_key"
+               }, 201
 
 
 stub_api.add_resource(Healthz, "/healthz")
