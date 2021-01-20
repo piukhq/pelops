@@ -1,51 +1,51 @@
 deliver_data = {
-    'mastercard': '<transaction>'
-                  '<token>bink_mastercard_token_1</token>'
-                  '<state>succeeded</state>'
-                  '<succeeded type="boolean">true</succeeded>'
-                  '<message>Succeeded!</message>'
-                  '<response>'
-                  '<headers>      <![CDATA[Content-Type: text/xml]]>    </headers>'
-                  '<body>'
-                  '<![CDATA[<?xml version="1.0" encoding="UTF-8"?><env:Envelope '
-                  'xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"><soapenv:Header '
-                  'xmlns:kd4="http://www.ibm.com/KD4Soap" '
-                  'xmlns:dat="http://mastercard.com/eis/bnb/servicev1_1/datatypes" '
-                  'xmlns:soap="http://www.w3.org/2003/05/soap-envelope" '
-                  'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">'
-                  '<kd4:KD4SoapHeaderV2>PRODESB4_KSC|3891838701|160923075124679</kd4:KD4SoapHeaderV2>'
-                  '<dat:bridgeUniqId>PRODESB4_KSC|3891838701|160923075124679</dat:bridgeUniqId>'
-                  '</soapenv:Header><env:Body><ns1:doEchoResponse '
-                  'xmlns:ns1="http://diagnostic.ws.mcrewards.mastercard.com/">'
-                  'Hello Hello</ns1:doEchoResponse></env:Body></env:Envelope>]]>'
-                  '</body>'
-                  '</response>'
-                  '<payment_method>'
-                  '<token>WhtIyJrcpcLupNpBD4bSVx3qyY5</token>'
-                  '</payment_method>'
-                  '</transaction>',
-    'amex': '<transaction>'
-            '<token>bink_amex_token_1</token>'
-            '<state>succeeded</state>'
-            '<succeeded type="boolean">true</succeeded>'
-            '<message>Succeeded!</message>'
-            '<response>'
-            '<headers>'
-            '<![CDATA[Content-Type: text/xml]]> '
-            '</headers> '
-            '<body>'
-            '<![CDATA[{"status":"Success","respCd":"RCCMP000","respDesc":"Card member successfully enrolled."} ]]>'
-            '</body>'
-            '</response>'
-            '<payment_method>'
-            '<token>WhtIyJrcpcLupNpBD4bSVx3qyY5</token>'
-            '</payment_method>'
-            '</transaction>',
-    'visa': {
-            "transaction": {
-                "response": {
-                    "status": 200,
-                    "body": """{
+    "mastercard": "<transaction>"
+    "<token>bink_mastercard_token_1</token>"
+    "<state>succeeded</state>"
+    '<succeeded type="boolean">true</succeeded>'
+    "<message>Succeeded!</message>"
+    "<response>"
+    "<headers>      <![CDATA[Content-Type: text/xml]]>    </headers>"
+    "<body>"
+    '<![CDATA[<?xml version="1.0" encoding="UTF-8"?><env:Envelope '
+    'xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"><soapenv:Header '
+    'xmlns:kd4="http://www.ibm.com/KD4Soap" '
+    'xmlns:dat="http://mastercard.com/eis/bnb/servicev1_1/datatypes" '
+    'xmlns:soap="http://www.w3.org/2003/05/soap-envelope" '
+    'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">'
+    "<kd4:KD4SoapHeaderV2>PRODESB4_KSC|3891838701|160923075124679</kd4:KD4SoapHeaderV2>"
+    "<dat:bridgeUniqId>PRODESB4_KSC|3891838701|160923075124679</dat:bridgeUniqId>"
+    "</soapenv:Header><env:Body><ns1:doEchoResponse "
+    'xmlns:ns1="http://diagnostic.ws.mcrewards.mastercard.com/">'
+    "Hello Hello</ns1:doEchoResponse></env:Body></env:Envelope>]]>"
+    "</body>"
+    "</response>"
+    "<payment_method>"
+    "<token>WhtIyJrcpcLupNpBD4bSVx3qyY5</token>"
+    "</payment_method>"
+    "</transaction>",
+    "amex": "<transaction>"
+    "<token>bink_amex_token_1</token>"
+    "<state>succeeded</state>"
+    '<succeeded type="boolean">true</succeeded>'
+    "<message>Succeeded!</message>"
+    "<response>"
+    "<headers>"
+    "<![CDATA[Content-Type: text/xml]]> "
+    "</headers> "
+    "<body>"
+    '<![CDATA[{"status":"Success","respCd":"RCCMP000","respDesc":"Card member successfully enrolled."} ]]>'
+    "</body>"
+    "</response>"
+    "<payment_method>"
+    "<token>WhtIyJrcpcLupNpBD4bSVx3qyY5</token>"
+    "</payment_method>"
+    "</transaction>",
+    "visa": {
+        "transaction": {
+            "response": {
+                "status": 200,
+                "body": """{
     "userDetails": {
         "externalUserId": "a74hd93d9812wir0174mk093dkie1",
         "communityCode": "BINKCTE01",
@@ -75,11 +75,11 @@ deliver_data = {
         "responseStatusDetails": []
     }
 }
-"""
-                    }
-                }
-            },
-    'visa_error': {
+""",
+            }
+        }
+    },
+    "visa_error": {
         "transaction": {
             "token": "JuWy4n4bIlNsgiU3h5yy6Jd4PVi",
             "transaction_type": "DeliverPaymentMethod",
@@ -88,21 +88,21 @@ deliver_data = {
             "updated_at": "2020-08-14T15:10:36Z",
             "succeeded": False,
             "message": "Delivery/Export to receiver endpoint returned with an error response code. "
-                       "Check the transaction transcript for more detail.",
+            "Check the transaction transcript for more detail.",
             "url": "https://cert.api.visa.com/vop/v1/users/enroll",
             "response": {
                 "status": 400,
                 "headers": "Server: nginx\r\nDate: Fri, 14 Aug 2020 15:10:36 GMT\r\n"
-                           "Content-Type: application/json;charset=utf-8\r\nContent-Length: 293\r\n"
-                           "Connection: keep-alive\r\nX-SERVED-BY: l73p041\r\n"
-                           "X-CORRELATION-ID: 1597417835_950_1977034855_l73p041_VDP_WS\r\n"
-                           "X-Backside-Transport: FAIL FAIL,FAIL FAIL\r\n"
-                           "Cache-Control: no-cache ,no-cache, no-store, must-revalidate\r\n"
-                           "Pragma: no-cache\r\nExpires: -1\r\nX-Powered-By: ASP.NET\r\n"
-                           "Strict-Transport-Security: max-age=31536000 ,max-age=2592000;includeSubdomains\r\n"
-                           "X-Global-Transaction-ID: 448482cb5f36a96c87125e09\r\nX-APP-STATUS: 400\r\n"
-                           "-Frame-Options: SAMEORIGIN\r\nX-XSS-Protection: 1; mode=block\r\n"
-                           "X-Content-Type-Options: nosniff\r\nX-Cnection: close",
+                "Content-Type: application/json;charset=utf-8\r\nContent-Length: 293\r\n"
+                "Connection: keep-alive\r\nX-SERVED-BY: l73p041\r\n"
+                "X-CORRELATION-ID: 1597417835_950_1977034855_l73p041_VDP_WS\r\n"
+                "X-Backside-Transport: FAIL FAIL,FAIL FAIL\r\n"
+                "Cache-Control: no-cache ,no-cache, no-store, must-revalidate\r\n"
+                "Pragma: no-cache\r\nExpires: -1\r\nX-Powered-By: ASP.NET\r\n"
+                "Strict-Transport-Security: max-age=31536000 ,max-age=2592000;includeSubdomains\r\n"
+                "X-Global-Transaction-ID: 448482cb5f36a96c87125e09\r\nX-APP-STATUS: 400\r\n"
+                "-Frame-Options: SAMEORIGIN\r\nX-XSS-Protection: 1; mode=block\r\n"
+                "X-Content-Type-Options: nosniff\r\nX-Cnection: close",
                 "body": """
 {
     "correlationId":"033440aa-9e91-43ed-8d15-6b27df9ed866",
@@ -115,7 +115,7 @@ deliver_data = {
             "message": "User Mocked Error trapped by Pelops"}
         ]}
 }
-"""
+""",
             },
             "receiver": {
                 "company_name": "Bink Visa Cert",
@@ -125,7 +125,7 @@ deliver_data = {
                 "state": "retained",
                 "created_at": "2020-07-23T17:45:54Z",
                 "updated_at": "2020-07-23T17:45:54Z",
-                "credentials": None
+                "credentials": None,
             },
             "payment_method": {
                 "token": "7I8T8A7bcYarl4Fv4oLkLX5XsCo",
@@ -165,12 +165,12 @@ deliver_data = {
                 "errors": [],
                 "fingerprint": "063fcf0319dcd8ac014867ee0919495276c6",
                 "verification_value": "",
-                "number": "XXXX-XXXX-XXXX-7103"
-            }
+                "number": "XXXX-XXXX-XXXX-7103",
+            },
         }
-    }
+    },
 }
 
 export_data = {
-    'visa': '{"state": "succeeded", "token": "bink_visa_token_1"}',
+    "visa": '{"state": "succeeded", "token": "bink_visa_token_1"}',
 }

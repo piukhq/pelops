@@ -1,21 +1,41 @@
-from flask_restplus import Api, Resource
+import redis
 from flask import request
-from app.apis.spreedly_stubs import spreedly_api as sp1
-from settings import logger
-from .psp_token import check_token
+from flask_restplus import Api, Resource
 
-stub_api = Api(ui=False,
-               title="Bink Stubbing API - Pelops",
-               version='1.0',
-               description='Provides API endpoints for testing and staging environments',
-               default='Pelops', default_label=u'Stubbed API for testing and staging')
+from app.apis.spreedly_stubs import spreedly_api as sp1
+from .psp_token import check_token
+from settings import REDIS_URL, logger
+
+stub_api = Api(
+    ui=False,
+    title="Bink Stubbing API - Pelops",
+    version="1.0",
+    description="Provides API endpoints for testing and staging environments",
+    default="Pelops",
+    default_label="Stubbed API for testing and staging",
+)
 
 stub_api.add_namespace(sp1)
 
 
 class Healthz(Resource):
     def get(self):
-        return ''
+        return ""
+
+
+class Readyz(Resource):
+    def get(self):
+        try:
+            r = redis.Redis.from_url(REDIS_URL)
+            r.ping()
+            return "", 204
+        except Exception as err:
+            return {"error": str(err)}, 500
+
+
+class Livez(Resource):
+    def get(self):
+        return "", 204
 
 
 class VopActivate(Resource):
@@ -131,15 +151,14 @@ class AmexOauth(Resource):
     def post(self):
         data = request.get_json()
         logger.info(f"amex oath: /apiplatform/v2/oauth/token/mac  body: {data}")
-        return {
-                   "access_token": "Pelops_Amex_test_token",
-                   "mac_key": "Pelops_Amex_Mac_key"
-               }, 201
+        return {"access_token": "Pelops_Amex_test_token", "mac_key": "Pelops_Amex_Mac_key"}, 201
 
 
-stub_api.add_resource(Healthz, '/healthz')
-stub_api.add_resource(VopActivate, '/vop/v1/activations/merchant')
-stub_api.add_resource(VopDeactivate, '/vop/v1/deactivations/merchant')
-stub_api.add_resource(VopUnenroll, '/vop/v1/users/unenroll')
+stub_api.add_resource(Healthz, "/healthz")
+stub_api.add_resource(Readyz, "/readyz")
+stub_api.add_resource(Livez, "/livez")
+stub_api.add_resource(VopActivate, "/vop/v1/activations/merchant")
+stub_api.add_resource(VopDeactivate, "/vop/v1/deactivations/merchant")
+stub_api.add_resource(VopUnenroll, "/vop/v1/users/unenroll")
 
-stub_api.add_resource(AmexOauth, '/apiplatform/v2/oauth/token/mac')
+stub_api.add_resource(AmexOauth, "/apiplatform/v2/oauth/token/mac")
