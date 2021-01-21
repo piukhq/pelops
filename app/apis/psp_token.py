@@ -123,6 +123,8 @@ def check_token(action_code: str, psp_token: str) -> tuple:
             time.sleep(error_delay)
         last_try['repeats'] -= 1
         storage.set_expire(key, json.dumps(last_try))
+        if pay_error == 0 and 200 <= error_code <= 299:
+            return False, pay_error, error_code, unique_token
         return True, pay_error, error_code, unique_token
     else:
         storage.delete(key)
