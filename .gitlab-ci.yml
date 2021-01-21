@@ -1,47 +1,45 @@
+stages:
+  - tests
+  - build
+
 complexity:
+  stage: tests
+  image: binkhq/python:3.8
+  before_script:
+    - pip install xenon
   script:
     - xenon --max-average A --max-modules B --max-absolute B .
-  tags:
-    - docker
 
 flake8:
+  stage: tests
+  image: binkhq/python:3.8
+  before_script:
+    - pip install flake8
   script:
-    - flake8 *
-  tags:
-    - docker
+    - flake8
 
-deploy_dev:
-  stage: deploy
-  environment: dev
+build-develop:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   script:
-    - docker build -t hellobink/pelops:dev .
-    - docker login -u binkautomation -p epitome-generic-basilisk
-    - docker push hellobink/pelops:dev
+    - docker build --pull -t "$CI_REGISTRY/pelops:develop-$CI_COMMIT_SHORT_SHA" .
+    - docker push "$CI_REGISTRY/pelops:develop-$CI_COMMIT_SHORT_SHA"
   only:
-    - master
-  tags:
-    - shell
+    - develop
 
-deploy_staging:
-  stage: deploy
-  environment: staging
+build-master:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   script:
-    - docker build -t hellobink/pelops:staging .
-    - docker login -u binkautomation -p epitome-generic-basilisk
-    - docker push hellobink/pelops:staging
+    - docker build --pull -t "$CI_REGISTRY/pelops:staging-$CI_COMMIT_TAG" .
+    - docker push "$CI_REGISTRY/pelops:staging-$CI_COMMIT_TAG"
   only:
-    - staging
-  tags:
-    - shell
-
-deploy_production:
-  stage: deploy
-  environment: production
-  script:
-    - docker build -t hellobink/pelops:production .
-    - docker login -u binkautomation -p epitome-generic-basilisk
-    - docker push hellobink/pelops:production
-  only:
-    - production
-  tags:
-    - shell
+    - tags
