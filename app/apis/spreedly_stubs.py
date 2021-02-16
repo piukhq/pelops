@@ -8,6 +8,7 @@ from app.apis.storage import Redis
 from app.fixtures.spreedly import deliver_data, export_data
 from settings import REDIS_URL, logger
 from .psp_token import check_token
+import re
 
 spreedly_api = Namespace('spreedly', description='Spreedly related operations')
 storage = Redis(url=REDIS_URL)
@@ -35,11 +36,34 @@ def get_request_token(method, request_info):
     return psp_token
 
 
+def get_amex_request_token(method, request_info):
+    data = request.data.decode('utf8')
+    result = re.search("<payment_method_token>(.*)</payment_method_token>", data)
+    psp_token = result.group(1)
+    logger.info(f"{method} psp_token: {psp_token} request {request_info}")
+    return psp_token
+
+
 @spreedly_api.route('/receivers/<token>/deliver.xml')
 class Deliver(Resource):
     def post(self, token):
         logger.info(f"request  /receivers/{token}/deliver.xml")
         if token in deliver_data:
+            if token == 'amex':
+                psp_token = get_amex_request_token('POST', f'/receivers/{token}/deliver.xml')
+                action = 'ADD'
+                if b'unsync_details' in request.data:
+                    action = 'DEL'
+                active, error_type, code, unique_token = check_token(action, psp_token)
+                if active:
+                    if error_type:
+                        resp_data = deliver_data['amex_error'].replace("<<error>>", code)
+                        return Response(resp_data, mimetype="text/xml")
+                    else:
+                        if not code:
+                            code = 404
+                        spreedly_api.abort(code, f'No deliver data for Amex simulated psp token {unique_token}'
+                                                 f' - psp token in request {psp_token}')
             return Response(deliver_data[token], mimetype="text/xml")
         else:
             spreedly_api.abort(404, "No deliver data for token {}".format(token))

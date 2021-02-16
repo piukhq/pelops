@@ -24,23 +24,199 @@ deliver_data = {
     "<token>WhtIyJrcpcLupNpBD4bSVx3qyY5</token>"
     "</payment_method>"
     "</transaction>",
-    "amex": "<transaction>"
-    "<token>bink_amex_token_1</token>"
-    "<state>succeeded</state>"
-    '<succeeded type="boolean">true</succeeded>'
-    "<message>Succeeded!</message>"
-    "<response>"
-    "<headers>"
-    "<![CDATA[Content-Type: text/xml]]> "
-    "</headers> "
-    "<body>"
-    '<![CDATA[{"status":"Success","respCd":"RCCMP000","respDesc":"Card member successfully enrolled."} ]]>'
-    "</body>"
-    "</response>"
-    "<payment_method>"
-    "<token>WhtIyJrcpcLupNpBD4bSVx3qyY5</token>"
-    "</payment_method>"
-    "</transaction>",
+    "amex": """<transaction>
+  <token>DhZzjauzqnSTXyhVx0ylmEJTV44</token>
+  <transaction_type>DeliverPaymentMethod</transaction_type>
+  <state>succeeded</state>
+  <created_at type="dateTime">2021-02-16T00:26:10Z</created_at>
+  <updated_at type="dateTime">2021-02-16T00:26:11Z</updated_at>
+  <succeeded type="boolean">true</succeeded>
+  <message>Succeeded!</message>
+  <url>https://api.dev2s.americanexpress.com/marketing/v4/smartoffers/card_accounts/cards/sync_details</url>
+  <response>
+    <status type="integer">200</status>
+    <headers>
+      <![CDATA[Date: Tue, 16 Feb 2021 00:26:11 GMT
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Connection: keep-alive
+Server: Apache-Coyote/1.1]]>
+    </headers>
+    <body>
+      <![CDATA[{"correlationId":"1613435163",
+      "status":"Success","respCd":"RCCMP000","respDesc":"Card member successfully enrolled.",
+      "cmAlias1":"QdjGCPSiYYDKxPMvvluYRG6zq79"}]]>
+    </body>
+  </response>
+  <receiver>
+    <company_name>American Express</company_name>
+    <receiver_type>american_express</receiver_type>
+    <token>TmOF7n6qdXkCC3lErt1ThRdXsAW</token>
+    <hostnames>https://api.qa.americanexpress.com, https://api.americanexpress.com, https://www206.americanexpress.com,
+     https://fsgateway.aexp.com, sftp://fsgateway.aexp.com, https://apigateway2s.americanexpress.com,
+      https://api.qa2s.americanexpress.com, https://api.dev2s.americanexpress.com,
+      https://apisl.americanexpress.com, https://sandbox.americanexpress.com, https://www396.americanexpress.com,
+      https://api-test.americanexpress.com, https://api2s.americanexpress.com,
+      https://apigateway.americanexpress.com</hostnames>
+    <state>retained</state>
+    <created_at type="dateTime">2021-02-02T17:54:23Z</created_at>
+    <updated_at type="dateTime">2021-02-02T17:54:23Z</updated_at>
+    <credentials type="array">
+      <credential>
+        <name>app-id</name>
+        <value type="integer">1234</value>
+        <safe type="boolean">true</safe>
+      </credential>
+      <credential>
+        <name>app-secret</name>
+        <safe>false</safe>
+      </credential>
+    </credentials>
+  </receiver>
+  <payment_method>
+    <token>QdjGCPSiYYDKxPMvvluYRG6zq79</token>
+    <created_at type="dateTime">2021-02-02T19:54:55Z</created_at>
+    <updated_at type="dateTime">2021-02-16T00:26:11Z</updated_at>
+    <email>joey@example.com</email>
+    <data nil="true"/>
+    <storage_state>retained</storage_state>
+    <test type="boolean">true</test>
+    <metadata>
+      <key>string value</key>
+      <another_key type="integer">123</another_key>
+      <final_key type="boolean">true</final_key>
+    </metadata>
+    <callback_url nil="true"/>
+    <last_four_digits>0005</last_four_digits>
+    <first_six_digits>378282</first_six_digits>
+    <card_type>american_express</card_type>
+    <first_name>Joe</first_name>
+    <last_name>Jones</last_name>
+    <month type="integer">3</month>
+    <year type="integer">2032</year>
+    <address1>33 Lane Road</address1>
+    <address2>Apartment 4</address2>
+    <city>Wanaque</city>
+    <state>NJ</state>
+    <zip>31331</zip>
+    <country>US</country>
+    <phone_number>919.331.3313</phone_number>
+    <company>Acme Inc.</company>
+    <full_name>Joe Jones</full_name>
+    <eligible_for_card_updater type="boolean">true</eligible_for_card_updater>
+    <shipping_address1>33 Lane Road</shipping_address1>
+    <shipping_address2>Apartment 4</shipping_address2>
+    <shipping_city>Wanaque</shipping_city>
+    <shipping_state>NJ</shipping_state>
+    <shipping_zip>31331</shipping_zip>
+    <shipping_country>US</shipping_country>
+    <shipping_phone_number>919.331.3313</shipping_phone_number>
+    <payment_method_type>credit_card</payment_method_type>
+    <errors>
+    </errors>
+    <verification_value></verification_value>
+    <number>XXXX-XXXX-XXXX-0005</number>
+    <fingerprint>3b71a994ea0b417babcab7111af5757d3ea8</fingerprint>
+  </payment_method>
+</transaction>
+""",
+    "amex_error": """<transaction>
+  <token>S2Qrz7pqhw8x0soEPGDqC0vlE14</token>
+  <transaction_type>DeliverPaymentMethod</transaction_type>
+  <state>succeeded</state>
+  <created_at type="dateTime">2021-02-16T00:44:03Z</created_at>
+  <updated_at type="dateTime">2021-02-16T00:44:03Z</updated_at>
+  <succeeded type="boolean">true</succeeded>
+  <message>Succeeded!</message>
+  <url>https://api.dev2s.americanexpress.com/marketing/v4/smartoffers/card_accounts/cards/sync_details</url>
+  <response>
+    <status type="integer">200</status>
+    <headers>
+      <![CDATA[Date: Tue, 16 Feb 2021 00:44:03 GMT
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Connection: keep-alive
+Server: Apache-Coyote/1.1]]>
+    </headers>
+    <body>
+      <![CDATA[{"correlationId":"1613436239",
+      "status":"Failure","respCd":"<<error>>","respDesc":"Mocked error from Pelops",
+      "cmAlias1":"QdjGCPSiYYDKxPMvvluYRG6zq79"}]]>
+    </body>
+  </response>
+  <receiver>
+    <company_name>American Express</company_name>
+    <receiver_type>american_express</receiver_type>
+    <token>TmOF7n6qdXkCC3lErt1ThRdXsAW</token>
+    <hostnames>https://api.qa.americanexpress.com, https://api.americanexpress.com,
+     https://www206.americanexpress.com, https://fsgateway.aexp.com,
+     sftp://fsgateway.aexp.com, https://apigateway2s.americanexpress.com,
+      https://api.qa2s.americanexpress.com, https://api.dev2s.americanexpress.com,
+       https://apisl.americanexpress.com, https://sandbox.americanexpress.com,
+       https://www396.americanexpress.com, https://api-test.americanexpress.com,
+       https://api2s.americanexpress.com, https://apigateway.americanexpress.com</hostnames>
+    <state>retained</state>
+    <created_at type="dateTime">2021-02-02T17:54:23Z</created_at>
+    <updated_at type="dateTime">2021-02-02T17:54:23Z</updated_at>
+    <credentials type="array">
+      <credential>
+        <name>app-id</name>
+        <value type="integer">1234</value>
+        <safe type="boolean">true</safe>
+      </credential>
+      <credential>
+        <name>app-secret</name>
+        <safe>false</safe>
+      </credential>
+    </credentials>
+  </receiver>
+  <payment_method>
+    <token>QdjGCPSiYYDKxPMvvluYRG6zq79</token>
+    <created_at type="dateTime">2021-02-02T19:54:55Z</created_at>
+    <updated_at type="dateTime">2021-02-16T00:44:03Z</updated_at>
+    <email>joey@example.com</email>
+    <data nil="true"/>
+    <storage_state>retained</storage_state>
+    <test type="boolean">true</test>
+    <metadata>
+      <key>string value</key>
+      <another_key type="integer">123</another_key>
+      <final_key type="boolean">true</final_key>
+    </metadata>
+    <callback_url nil="true"/>
+    <last_four_digits>0005</last_four_digits>
+    <first_six_digits>378282</first_six_digits>
+    <card_type>american_express</card_type>
+    <first_name>Joe</first_name>
+    <last_name>Jones</last_name>
+    <month type="integer">3</month>
+    <year type="integer">2032</year>
+    <address1>33 Lane Road</address1>
+    <address2>Apartment 4</address2>
+    <city>Wanaque</city>
+    <state>NJ</state>
+    <zip>31331</zip>
+    <country>US</country>
+    <phone_number>919.331.3313</phone_number>
+    <company>Acme Inc.</company>
+    <full_name>Joe Jones</full_name>
+    <eligible_for_card_updater type="boolean">true</eligible_for_card_updater>
+    <shipping_address1>33 Lane Road</shipping_address1>
+    <shipping_address2>Apartment 4</shipping_address2>
+    <shipping_city>Wanaque</shipping_city>
+    <shipping_state>NJ</shipping_state>
+    <shipping_zip>31331</shipping_zip>
+    <shipping_country>US</shipping_country>
+    <shipping_phone_number>919.331.3313</shipping_phone_number>
+    <payment_method_type>credit_card</payment_method_type>
+    <errors>
+    </errors>
+    <verification_value></verification_value>
+    <number>XXXX-XXXX-XXXX-0005</number>
+    <fingerprint>3b71a994ea0b417babcab7111af5757d3ea8</fingerprint>
+  </payment_method>
+</transaction>
+    """,
     "visa": {
         "transaction": {
             "response": {
