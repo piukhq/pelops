@@ -54,9 +54,9 @@ Server: Apache-Coyote/1.1]]>
     <token>TmOF7n6qdXkCC3lErt1ThRdXsAW</token>
     <hostnames>https://api.qa.americanexpress.com, https://api.americanexpress.com, https://www206.americanexpress.com,
      https://fsgateway.aexp.com, sftp://fsgateway.aexp.com, https://apigateway2s.americanexpress.com,
-      https://api.qa2s.americanexpress.com, https://api.dev2s.americanexpress.com, 
-      https://apisl.americanexpress.com, https://sandbox.americanexpress.com, https://www396.americanexpress.com, 
-      https://api-test.americanexpress.com, https://api2s.americanexpress.com, 
+      https://api.qa2s.americanexpress.com, https://api.dev2s.americanexpress.com,
+      https://apisl.americanexpress.com, https://sandbox.americanexpress.com, https://www396.americanexpress.com,
+      https://api-test.americanexpress.com, https://api2s.americanexpress.com,
       https://apigateway.americanexpress.com</hostnames>
     <state>retained</state>
     <created_at type="dateTime">2021-02-02T17:54:23Z</created_at>
@@ -149,10 +149,10 @@ Server: Apache-Coyote/1.1]]>
     <receiver_type>american_express</receiver_type>
     <token>TmOF7n6qdXkCC3lErt1ThRdXsAW</token>
     <hostnames>https://api.qa.americanexpress.com, https://api.americanexpress.com,
-     https://www206.americanexpress.com, https://fsgateway.aexp.com, 
+     https://www206.americanexpress.com, https://fsgateway.aexp.com,
      sftp://fsgateway.aexp.com, https://apigateway2s.americanexpress.com,
       https://api.qa2s.americanexpress.com, https://api.dev2s.americanexpress.com,
-       https://apisl.americanexpress.com, https://sandbox.americanexpress.com, 
+       https://apisl.americanexpress.com, https://sandbox.americanexpress.com,
        https://www396.americanexpress.com, https://api-test.americanexpress.com,
        https://api2s.americanexpress.com, https://apigateway.americanexpress.com</hostnames>
     <state>retained</state>
