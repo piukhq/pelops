@@ -26,8 +26,9 @@ build-develop:
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   script:
-    - docker build --pull -t "$CI_REGISTRY/pelops:develop-$CI_COMMIT_SHORT_SHA" .
-    - docker push "$CI_REGISTRY/pelops:develop-$CI_COMMIT_SHORT_SHA"
+    - export CTAG="develop-$(date +%F-%H%M%S)"
+    - docker build --pull -t "$CI_REGISTRY/pelops:$CTAG" .
+    - docker push "$CI_REGISTRY/pelops:$CTAG"
   only:
     - develop
 
@@ -39,7 +40,8 @@ build-master:
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   script:
-    - docker build --pull -t "$CI_REGISTRY/pelops:staging-$CI_COMMIT_TAG" .
-    - docker push "$CI_REGISTRY/pelops:staging-$CI_COMMIT_TAG"
+    - export CTAG="staging-$(date +%F-%H%M%S)"
+    - docker build --pull -t "$CI_REGISTRY/pelops:$CTAG" .
+    - docker push "$CI_REGISTRY/pelops:$CTAG"
   only:
     - tags
