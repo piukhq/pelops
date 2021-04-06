@@ -105,8 +105,9 @@ class Export(Resource):
 @spreedly_api.route('/payment_methods/<psp_token>/retain.json')
 class Retain(Resource):
     def put(self, psp_token):
-        active, error_type, code, _ = check_token('RET', psp_token)
+        active, error_type, code, unique_code = check_token('RET', psp_token)
         if not active:
+            storage.update(unique_code)
             return True
         else:
             if error_type:      # We want to ignore payment error strings if set for retain ie we might use xxx

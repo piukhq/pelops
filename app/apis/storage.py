@@ -26,3 +26,27 @@ class Redis:
 
     def delete(self, key):
         self.store.delete(self._key(key))
+
+    def update(self, token, new_status):
+        if new_status == 'RETAINED':
+            self.set_expire(f'card_{token}', 'RETAINED', 6000)
+
+        elif new_status == 'ADDED':
+            old_status = self.get(f'card_{token}')
+            if old_status == 'RETAINED' or old_status == 'DELETED':
+                self.set_expire(f'card_{token}', 'ADDED', 6000)
+                return True, 'Card successfully added'
+            elif old_status == 'ADDED':
+                return False, 'Card cannot be added again.'
+            else:
+                return False, 'Card cannot be added - not yet retained.'
+
+        elif new_status == 'DELETED':
+            old_status = self.get(f'card_{token}')
+            if old_status == 'ADDED':
+                self.set_expire(f'card_{token}', 'DELETED', 6000)
+                return True, 'Card successfully deleted'
+            elif old_status == 'RETAINED' or old_status == 'DELETED':
+                return False, f'Card cannot be deleted. Card is currently {old_status}.'
+            else:
+                return False, 'Card cannot be added - not yet retained.'
