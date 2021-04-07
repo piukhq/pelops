@@ -68,10 +68,10 @@ class Redis:
 
         if new_status == retained:
             actions = {
-                added: (True, 'Card already added but re-retained.'),
-                retained: (True, 'Card already retained but re-retained'),
-                deleted: (True, 'Card retained'),
-                '': (True, 'Card retained')
+                added: (False, 'Card re-retained but still added.'),
+                retained: (False, 'Card already retained but re-retained.'),
+                deleted: (False, 'Card re-retained but still deleted.'),
+                '': (True, 'Card retained.')
             }
 
             success, message = actions[old_status]
@@ -81,9 +81,9 @@ class Redis:
         elif new_status == added:
             actions = {
                 added: (False, 'Card cannot be re-added.'),
-                retained: (True, 'Card added successfully'),
-                deleted: (False, 'Card not retained'),
-                '': (False, 'Card not retained')
+                retained: (True, 'Card added successfully.'),
+                deleted: (False, 'Card not retained.'),
+                '': (False, 'Card not retained.')
             }
             success, message = actions[old_status]
             if success:
@@ -92,9 +92,9 @@ class Redis:
         elif new_status == deleted:
             actions = {
                 added: (True, 'Card deleted successfully.'),
-                retained: (False, 'Card not yet added'),
-                deleted: (False, 'Card already deleted'),
-                '': (False, 'Card not yet added')
+                retained: (False, 'Card not yet added.'),
+                deleted: (False, 'Card already deleted.'),
+                '': (False, 'Card not yet added.')
             }
             success, message = actions[old_status]
             if success:
