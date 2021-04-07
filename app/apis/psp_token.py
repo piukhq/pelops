@@ -47,12 +47,12 @@ def check_token(action_code: str, psp_token: str) -> tuple:
 
     For Error simulation (ERR & REQ):
 
-        ERR prefix will error and return a given error code:
+        The ERR prefix, added to the psp_token, will error and return a given error code:
             e.g. ERR{code}_#1
             where {code} is a string such as ADD (see codes below) and #1 is the returned payment error string if
             applicable
 
-        REQ code is used to simulate repeated and delayed requests:
+        The REQ prefix is used to simulate repeated and delayed requests:
             REQ{code}_#1_#2_#3_unique string
             #1 = error code may be HTTP error or Payment error code see #2
             #2 = set to 0 for HTTP error or 1 for Payment error code
@@ -62,7 +62,7 @@ def check_token(action_code: str, psp_token: str) -> tuple:
             counter
 
         If token does not start with ERR or REQ or if the action code does not match or if number of times exceeded
-        the token behaves as normal.
+        the token behaves as normal. The PER prefix is used for persistence (see storage.update_if_per())
         Only the unique part is checked so the instruction part can be changed. This allows the token to be changed
         to test various failure scenarios eg with an action code of DEL the failure will occur only when deleting
 
@@ -91,23 +91,16 @@ def check_token(action_code: str, psp_token: str) -> tuple:
             Fail ADD and return http error code 404 next 4 times with a delay of 2s then pass normally.
                 REQADD_404_0_4_2_uniqueString
 
-    For persistence:
+        :param action_code:  one of 'RET', 'ADD', 'DEL', 'ACT', 'DEACT' to determine when action matches token code
+        :param psp_token:    psp token ie payment token retained by Spreedly
+        :return: tuple ( ErrorActive:bool , Pay_error:bool, error_code: string, unique_token_part:string)
 
-        PER prefix will simulate persistence in Redis, allowing Pelops to store the results of some calls (such as ADD
-        and DEL) in a cache for testing purposes:
-            e.g. PER_uniqueString
+    RET  - Retain Spreedly request
+    ADD  - Add/Enrol Spreedly request
+    DEL  - Delete/Unenrol Spreedly (AMEX or MasterCard) or VOP request
+    ACT  - Activation VOP request
+    DEACT - De-Activation VOP request
 
-        Codes are:
-
-        RET  - Retain Spreedly request
-        ADD  - Add/Enrol Spreedly request
-        DEL  - Delete/Unenrol Spreedly (AMEX or MasterCard) or VOP request
-        ACT  - Activation VOP request
-        DEACT - De-Activation VOP request
-
-    :param action_code:  one of 'RET', 'ADD', 'DEL', 'ACT', 'DEACT' to determine when action matches token code
-    :param psp_token:    psp token ie payment token retained by Spreedly
-    :return: tuple ( ErrorActive:bool , Pay_error:bool, error_code: string, unique_token_part:string)
     """
 
     pay_error, token_type, error_times, error_code, error_delay, unique_token, token_action = split_psp_token(psp_token)

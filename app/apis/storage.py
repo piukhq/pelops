@@ -29,6 +29,21 @@ class Redis:
         self.store.delete(self._key(key))
 
     def update_if_per(self, psp_token, new_status):
+
+        """
+        For Persistence (PER):
+
+        The PER prefix, added to the psp_token, will simulate persistence in Redis, allowing Pelops to store the results
+        of some calls (currently ADD, DEL and RET) in a cache for testing purposes. This will be reflected in the card
+        'status', which is updated as successful call are made to simulate card status in 3rd party vaults/dbs.:
+            e.g. PER_4423snv489os093
+
+        Individual card status can be queried via the '/cardstatus' endpoint (without the PER prefix):
+            e.g. {pelops url}/cardstatus/4423snv489os093
+
+        The status of cards added/deleted etc. without the PER prefix will not be stored/updated.
+        """
+
         if psp_token[:3] == 'PER':
             success, message = self.update(psp_token[4:], new_status)
             logger.info(f'Card persistence: {message}')
