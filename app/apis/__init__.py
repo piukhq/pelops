@@ -5,6 +5,9 @@ from flask_restplus import Api, Resource
 from app.apis.spreedly_stubs import spreedly_api as sp1
 from settings import REDIS_URL, logger
 from .psp_token import check_token
+from .storage import Redis
+
+storage = Redis(url=REDIS_URL)
 
 stub_api = Api(
     ui=False,
@@ -134,6 +137,7 @@ class VopUnenroll(Resource):
                     sp1.abort(code, f"Failed VOP Unenrol request for {unique_token}")
 
             else:
+                storage.update_if_per(psp_token, 'DELETED')
                 return {
                     "correlationId": "ce708e6a-fd5f-48cc-b9ff-ce518a6fda1a",
                     "responseDateTime": "2020-01-29T15:02:50.8109336Z",
@@ -144,6 +148,16 @@ class VopUnenroll(Resource):
                 }, 201
         else:
             sp1.abort(400, "Invalid request")
+
+
+class CardStatus(Resource):
+
+    def get(self, unique_token):
+        try:
+            status = storage.get(f'card_{unique_token}')
+            return f'Card status is {status}'
+        except:
+            return 'No Card data exists'
 
 
 class AmexOauth(Resource):
@@ -163,5 +177,5 @@ stub_api.add_resource(Livez, "/livez")
 stub_api.add_resource(VopActivate, "/vop/v1/activations/merchant")
 stub_api.add_resource(VopDeactivate, "/vop/v1/deactivations/merchant")
 stub_api.add_resource(VopUnenroll, "/vop/v1/users/unenroll")
-
+stub_api.add_resource(CardStatus, "/cardstatus/<unique_token>")
 stub_api.add_resource(AmexOauth, "/apiplatform/v2/oauth/token/mac")

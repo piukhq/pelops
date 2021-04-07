@@ -36,7 +36,7 @@ def get_request_token(method, request_info):
     return psp_token
 
 
-def get_amex_request_token(method, request_info):
+def  get_amex_request_token(method, request_info):
     data = request.data.decode('utf8')
     result = re.search("<payment_method_token>(.*)</payment_method_token>", data)
     psp_token = result.group(1)
@@ -64,6 +64,9 @@ class Deliver(Resource):
                             code = 404
                         spreedly_api.abort(code, f'No deliver data for Amex simulated psp token {unique_token}'
                                                  f' - psp token in request {psp_token}')
+            action = 'DELETED' if b'unsync_details' in request.data else 'ADDED'
+            logger.info(f'{psp_token}')
+            storage.update_if_per(psp_token, action)
             return Response(deliver_data[token], mimetype="text/xml")
         else:
             spreedly_api.abort(404, "No deliver data for token {}".format(token))
@@ -87,6 +90,7 @@ class DeliverJson(Resource):
                     spreedly_api.abort(code, f'No deliver data for Visa simulated psp token {unique_token}'
                                              f' - psp token in request {psp_token}')
             else:
+                storage.update_if_per(psp_token, 'ADDED')
                 return Response(json.dumps(deliver_data[token]), mimetype='application/json')
         else:
             spreedly_api.abort(404, 'request made to deliver.json requires a visa token i.e. '
@@ -107,7 +111,7 @@ class Retain(Resource):
     def put(self, psp_token):
         active, error_type, code, unique_code = check_token('RET', psp_token)
         if not active:
-            storage.update(unique_code)
+            storage.update_if_per(psp_token, 'RETAINED')
             return True
         else:
             if error_type:      # We want to ignore payment error strings if set for retain ie we might use xxx
