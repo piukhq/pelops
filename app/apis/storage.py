@@ -41,9 +41,9 @@ class Redis:
         success = False
         message = 'Failed'
 
-        status_retained = 'RETAINED'
-        status_added = 'ADDED'
-        status_deleted = 'DELETED'
+        retained = 'RETAINED'
+        added = 'ADDED'
+        deleted = 'DELETED'
 
         try:
             old_status = self.get(f'card_{unique_token}')
@@ -51,36 +51,34 @@ class Redis:
             self.set_expire(f'card_{unique_token}', '', expiry)
             old_status = ''
 
-        if new_status == status_retained:
-            if old_status == status_added:
-                success = True
+        if new_status == retained:
+            if old_status == added:
                 message = 'Card already added but re-retained.'
-            elif old_status == status_retained:
-                success = True
+            elif old_status == retained:
                 message = 'Card already retained but re-retained'
-            else:
+            elif old_status == '':
                 self.set_expire(f'card_{unique_token}', new_status, expiry)
-                success = True
                 message = 'Card retained'
+            success = True
 
-        elif new_status == status_added:
-            if old_status in [status_retained, status_deleted]:
+        elif new_status == added:
+            if old_status == retained or old_status == deleted:
                 self.set_expire(f'card_{unique_token}', new_status, expiry)
                 success = True
                 message = 'Card successfully added.'
             elif old_status == new_status:
                 message = 'Card cannot be added again.'
-            else:
+            elif old_status == '':
                 message = 'Card cannot be added - not yet retained.'
 
-        elif new_status == status_deleted:
-            if old_status == status_added:
+        elif new_status == deleted:
+            if old_status == added:
                 self.set_expire(f'card_{unique_token}', new_status, expiry)
                 success = True
                 message = 'Card successfully deleted.'
-            elif old_status in [status_retained, status_deleted]:
+            elif old_status == retained or old_status == deleted:
                 message = 'Card cannot be deleted. Card is not added.'
-            else:
+            elif old_status == '':
                 message = 'Card cannot be added - not yet retained.'
 
         return success, message
