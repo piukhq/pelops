@@ -70,7 +70,7 @@ class Redis:
             actions = {
                 added: (False, 'Card re-retained but still added.'),
                 retained: (False, 'Card already retained but re-retained.'),
-                deleted: (False, 'Card re-retained but still deleted.'),
+                deleted: (False, 'Card was deleted but now moved to retained.'),
                 '': (True, 'Card retained.')
             }
 
