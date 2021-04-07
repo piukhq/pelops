@@ -52,24 +52,35 @@ class Redis:
             old_status = ''
 
         if new_status == status_retained:
-            self.set_expire(f'card_{unique_token}', new_status, expiry)
-            success = True
-            message = 'Card retained'
+            if old_status == status_added:
+                success = True
+                message = 'Card already added but re-retained.'
+            elif old_status == status_retained:
+                success = True
+                message = 'Card already retained but re-retained'
+            else:
+                self.set_expire(f'card_{unique_token}', new_status, expiry)
+                success = True
+                message = 'Card retained'
 
         elif new_status == status_added:
             if old_status in [status_retained, status_deleted]:
                 self.set_expire(f'card_{unique_token}', new_status, expiry)
                 success = True
                 message = 'Card successfully added.'
+            elif old_status == new_status:
+                message = 'Card cannot be added again.'
             else:
-                message = f'Card cannot be added. Card status is {old_status}'
+                message = 'Card cannot be added - not yet retained.'
 
         elif new_status == status_deleted:
             if old_status == status_added:
                 self.set_expire(f'card_{unique_token}', new_status, expiry)
                 success = True
                 message = 'Card successfully deleted.'
+            elif old_status in [status_retained, status_deleted]:
+                message = 'Card cannot be deleted. Card is not added.'
             else:
-                message = f'Card cannot be deleted. Card status {old_status}'
+                message = 'Card cannot be added - not yet retained.'
 
         return success, message
