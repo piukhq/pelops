@@ -38,6 +38,8 @@ class Redis:
     def update(self, unique_token, new_status):
 
         expiry = 6000
+        success = False
+        message = 'failed'
 
         try:
             old_status = self.get(f'card_{unique_token}')
@@ -46,28 +48,36 @@ class Redis:
             old_status = ''
 
         if new_status == 'RETAINED':
-            if old_status =='ADDED':
-                return True, 'Card already added but re-retained.'
+            if old_status == 'ADDED':
+                message = 'Card already added but re-retained.'
             elif old_status == 'RETAINED':
-                return True, 'Card alread retained but re-retained'
+                message = 'Card already retained but re-retained'
             else:
                 self.set_expire(f'card_{unique_token}', new_status, expiry)
-                return True, 'Card retained'
+                message = 'Card retained'
 
         elif new_status == 'ADDED':
             if old_status in ['RETAINED', 'DELETED']:
                 self.set_expire(f'card_{unique_token}', new_status, expiry)
-                return True, 'Card successfully added.'
+                success = True
+                message = 'Card successfully added.'
             elif old_status == new_status:
-                return False, 'Card cannot be added again.'
+                success = False
+                message = 'Card cannot be added again.'
             else:
-                return False, 'Card cannot be added - not yet retained.'
+                success = False
+                message = 'Card cannot be added - not yet retained.'
 
         elif new_status == 'DELETED':
             if old_status == 'ADDED':
                 self.set_expire(f'card_{unique_token}', new_status, expiry)
-                return True, 'Card successfully deleted.'
+                success = True
+                message = 'Card successfully deleted.'
             elif old_status in ['RETAINED', 'DELETED']:
-                return False, f'Card cannot be deleted. Card is not added.'
+                success = False
+                message = f'Card cannot be deleted. Card is not added.'
             else:
-                return False, 'Card cannot be added - not yet retained.'
+                success = False
+                message = 'Card cannot be added - not yet retained.'
+
+        return success, message
