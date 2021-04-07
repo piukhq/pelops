@@ -52,33 +52,37 @@ class Redis:
             old_status = ''
 
         if new_status == retained:
-            if old_status == added:
-                message = 'Card already added but re-retained.'
-            elif old_status == retained:
-                message = 'Card already retained but re-retained'
-            elif old_status == '':
+            actions = {
+                added: (True, 'Card already added but re-retained.'),
+                retained: (True, 'Card already retained but re-retained'),
+                deleted: (True, 'Card retained'),
+                '': (True, 'Card retained')
+            }
+
+            success, message = actions[old_status]
+            if success:
                 self.set_expire(f'card_{unique_token}', new_status, expiry)
-                message = 'Card retained'
-            success = True
 
         elif new_status == added:
-            if old_status == retained or old_status == deleted:
+            actions = {
+                added: (False, 'Card cannot be re-added.'),
+                retained: (True, 'Card added successfully'),
+                deleted: (False, 'Card not retained'),
+                '': (False, 'Card not retained')
+            }
+            success, message = actions[old_status]
+            if success:
                 self.set_expire(f'card_{unique_token}', new_status, expiry)
-                success = True
-                message = 'Card successfully added.'
-            elif old_status == new_status:
-                message = 'Card cannot be added again.'
-            elif old_status == '':
-                message = 'Card cannot be added - not yet retained.'
 
         elif new_status == deleted:
-            if old_status == added:
+            actions = {
+                added: (True, 'Card deleted successfully.'),
+                retained: (False, 'Card not yet added'),
+                deleted: (False, 'Card already deleted'),
+                '': (False, 'Card not yet added')
+            }
+            success, message = actions[old_status]
+            if success:
                 self.set_expire(f'card_{unique_token}', new_status, expiry)
-                success = True
-                message = 'Card successfully deleted.'
-            elif old_status == retained or old_status == deleted:
-                message = 'Card cannot be deleted. Card is not added.'
-            elif old_status == '':
-                message = 'Card cannot be added - not yet retained.'
 
         return success, message
