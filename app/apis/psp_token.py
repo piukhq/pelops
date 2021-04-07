@@ -139,11 +139,3 @@ def check_token(action_code: str, psp_token: str) -> tuple:
     else:
         storage.delete(key)
         return False, pay_error, error_code, unique_token
-
-# token:token, status:RETAIN/ADD/DELETE
-
-#1. Add redis persistence bit
-
-#2. Logic -what can I/can't I do.'
-
-#GET status token

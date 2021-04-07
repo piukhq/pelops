@@ -137,7 +137,7 @@ class VopUnenroll(Resource):
                     sp1.abort(code, f"Failed VOP Unenrol request for {unique_token}")
 
             else:
-                storage.update_if_per(psp_token, 'DELETED')
+                storage.update_if_per(user_key, 'DELETED')
                 return {
                     "correlationId": "ce708e6a-fd5f-48cc-b9ff-ce518a6fda1a",
                     "responseDateTime": "2020-01-29T15:02:50.8109336Z",
@@ -156,7 +156,7 @@ class CardStatus(Resource):
         try:
             status = storage.get(f'card_{unique_token}')
             return f'Card status is {status}'
-        except:
+        except storage.NotFound:
             return 'No Card data exists'
 
 

@@ -36,7 +36,7 @@ def get_request_token(method, request_info):
     return psp_token
 
 
-def  get_amex_request_token(method, request_info):
+def get_amex_request_token(method, request_info):
     data = request.data.decode('utf8')
     result = re.search("<payment_method_token>(.*)</payment_method_token>", data)
     psp_token = result.group(1)

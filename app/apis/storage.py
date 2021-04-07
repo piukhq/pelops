@@ -75,7 +75,7 @@ class Redis:
                 message = 'Card successfully deleted.'
             elif old_status in ['RETAINED', 'DELETED']:
                 success = False
-                message = f'Card cannot be deleted. Card is not added.'
+                message = 'Card cannot be deleted. Card is not added.'
             else:
                 success = False
                 message = 'Card cannot be added - not yet retained.'
