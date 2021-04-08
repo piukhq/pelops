@@ -75,7 +75,7 @@ Server: Apache-Coyote/1.1]]>
     </credentials>
   </receiver>
   <payment_method>
-    <token>QdjGCPSiYYDKxPMvvluYRG6zq79</token>
+    <token><<TOKEN>></token>
     <created_at type="dateTime">2021-02-02T19:54:55Z</created_at>
     <updated_at type="dateTime">2021-02-16T00:26:11Z</updated_at>
     <email>joey@example.com</email>
@@ -173,7 +173,7 @@ Server: Apache-Coyote/1.1]]>
     </credentials>
   </receiver>
   <payment_method>
-    <token>QdjGCPSiYYDKxPMvvluYRG6zq79</token>
+    <token><<TOKEN>></token>
     <created_at type="dateTime">2021-02-02T19:54:55Z</created_at>
     <updated_at type="dateTime">2021-02-16T00:44:03Z</updated_at>
     <email>joey@example.com</email>
@@ -228,7 +228,7 @@ Server: Apache-Coyote/1.1]]>
     "userDetails": {
         "externalUserId": "a74hd93d9812wir0174mk093dkie1",
         "communityCode": "BINKCTE01",
-        "userId": "809902ef-3c0b-40b8-93bf-63e2621df06f",
+        "userId": "<<TOKEN>>",
         "userKey": "a74hd93d9812wir0174mk093dkie1",
         "languageId": "en-US",
         "timeZoneId": "Pacific Standard Time",

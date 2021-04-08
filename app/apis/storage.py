@@ -48,7 +48,7 @@ class Redis:
         if psp_token[:3] == 'PER':
             expiry = 6000
             unique_token = psp_token[4:]
-            success, message = self.update(unique_token, new_status, expiry)
+            success, message, err = self.update(unique_token, new_status, expiry)
             logger.info(f'Card persistence: {message}')
             try:
                 log = self.get(f'cardlog_{unique_token}')
@@ -57,8 +57,9 @@ class Redis:
             now = datetime.now()
             log = log + f'{now}: {message}\n'
             self.set_expire(f'cardlog_{unique_token}', log, expiry)
+            return True, success, message, err
         else:
-            pass
+            return False, False, '', {}
 
     def update(self, unique_token, new_status, expiry):
 
@@ -77,36 +78,37 @@ class Redis:
 
         if new_status == retained:
             actions = {
-                added: (False, f'Card {unique_token} re-retained (Currently ADDED).'),
-                retained: (False, f'Card {unique_token} re-retained (Currently RETAINED).'),
-                deleted: (False, f'Card {unique_token} re-retained (Currently DELETED).'),
-                '': (True, f'Card {unique_token} retained.')
+                added: (False, True, f'Card {unique_token} re-retained (Currently ADDED).', None),
+                retained: (False, True, f'Card {unique_token} re-retained (Currently RETAINED).', None),
+                deleted: (False, True, f'Card {unique_token} re-retained (Currently DELETED).', None),
+                '': (True, True, f'Card {unique_token} retained.', None)
             }
 
-            success, message = actions[old_status]
-            if success:
+            change, success, message, err = actions[old_status]
+            if change:
                 self.set_expire(f'card_{unique_token}', new_status, expiry)
 
         elif new_status == added:
             actions = {
-                added: (False, f'Cannot {unique_token} be added - added card already exists.'),
-                retained: (True, f'Card {unique_token} added successfully.'),
-                deleted: (True, f'Card {unique_token} re-added.'),
-                '': (False, f'Card {unique_token} not retained.')
+                added: (False, False, f'Card {unique_token} cannot be added - card already exists.',
+                        {'amex': '', 'vop': 'RTMENRE0025'}),
+                retained: (True, True, f'Card {unique_token} added successfully.', None),
+                deleted: (True, True, f'Card {unique_token} re-added.', None),
+                '': (False, False, f'Card {unique_token} not yet retained.', {'amex': '', 'vop': 'RTMENRE0021'})
             }
-            success, message = actions[old_status]
-            if success:
+            change, success, message, err = actions[old_status]
+            if change:
                 self.set_expire(f'card_{unique_token}', new_status, expiry)
 
         elif new_status == deleted:
             actions = {
-                added: (True, f'Card {unique_token} deleted successfully.'),
-                retained: (False, f'Card {unique_token} not yet added.'),
-                deleted: (False, f'Card {unique_token} already deleted.'),
-                '': (False, f'Card {unique_token} not yet added.')
+                added: (True, True, f'Card {unique_token} deleted successfully.', None),
+                retained: (False, False, f'Card {unique_token} not yet added.', {'amex': '', 'vop': 'RTMENRE0050'}),
+                deleted: (False, False, f'Card {unique_token} already deleted.', {'amex': '', 'vop': 'RTMENRE0026'}),
+                '': (False, False, f'Card {unique_token} not yet added.', {'amex': '', 'vop': 'RTMENRE0026'})
             }
-            success, message = actions[old_status]
-            if success:
+            change, success, message, err = actions[old_status]
+            if change:
                 self.set_expire(f'card_{unique_token}', new_status, expiry)
 
-        return success, message
+        return success, message, err

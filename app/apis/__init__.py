@@ -137,15 +137,26 @@ class VopUnenroll(Resource):
                     sp1.abort(code, f"Failed VOP Unenrol request for {unique_token}")
 
             else:
-                storage.update_if_per(user_key, 'DELETED')
-                return {
-                    "correlationId": "ce708e6a-fd5f-48cc-b9ff-ce518a6fda1a",
-                    "responseDateTime": "2020-01-29T15:02:50.8109336Z",
-                    "responseStatus": {
-                        "code": "SUCCESS",
-                        "message": "Request proceed successfully without error."
-                    }
-                }, 201
+                per, success, message, err = storage.update_if_per(user_key, 'DELETED')
+                if per and not success:
+                    return {
+                               "correlationId": "ce708e6a-fd5f-48cc-b9ff-ce518a6fda1a",
+                               "responseDateTime": "2020-01-29T15:02:50.8109336Z",
+                               "responseStatus": {
+                                   "code": err['vop'],
+                                   "message": "VOP Unenroll failure message.",
+                                   "responseStatusDetails": []
+                               }
+                           }, 200
+                else:
+                    return {
+                        "correlationId": "ce708e6a-fd5f-48cc-b9ff-ce518a6fda1a",
+                        "responseDateTime": "2020-01-29T15:02:50.8109336Z",
+                        "responseStatus": {
+                            "code": "SUCCESS",
+                            "message": "Request proceed successfully without error."
+                        }
+                    }, 201
         else:
             sp1.abort(400, "Invalid request")
 

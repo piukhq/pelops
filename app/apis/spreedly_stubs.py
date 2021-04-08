@@ -65,8 +65,13 @@ class Deliver(Resource):
                         spreedly_api.abort(code, f'No deliver data for Amex simulated psp token {unique_token}'
                                                  f' - psp token in request {psp_token}')
             action = 'DELETED' if b'unsync_details' in request.data else 'ADDED'
-            storage.update_if_per(psp_token, action)
-            return Response(deliver_data[token], mimetype="text/xml")
+            per, success, message, err = storage.update_if_per(psp_token, action)
+            if per and not success:
+                resp = deliver_data['amex_error'].replace('<<error>>', err['amex'])
+            else:
+                resp = deliver_data[token]
+            resp = resp.replace('<<TOKEN>>', psp_token)
+            return Response(resp, mimetype="text/xml")
         else:
             spreedly_api.abort(404, "No deliver data for token {}".format(token))
 
@@ -82,6 +87,7 @@ class DeliverJson(Resource):
                     resp_data = deliver_data['visa_error']
                     resp_data["transaction"]["response"]["body"] = \
                         resp_data["transaction"]["response"]["body"].replace('<<error>>', code)
+                    resp_data["transaction"]["payment_method"]["token"] = psp_token
                     return Response(json.dumps(resp_data), mimetype='application/json')
                 else:
                     if not code:
@@ -89,8 +95,16 @@ class DeliverJson(Resource):
                     spreedly_api.abort(code, f'No deliver data for Visa simulated psp token {unique_token}'
                                              f' - psp token in request {psp_token}')
             else:
-                storage.update_if_per(psp_token, 'ADDED')
-                resp_data = deliver_data[token]
+                per, success, message, err = storage.update_if_per(psp_token, 'ADDED')
+                if per and not success:
+                    resp_data = deliver_data['visa_error']
+                    resp_data["transaction"]["response"]["body"] = \
+                        resp_data["transaction"]["response"]["body"].replace('<<error>>', err['vop'])
+                    resp_data["transaction"]["payment_method"]["token"] = psp_token
+                else:
+                    resp_data = deliver_data[token]
+                    resp_data["transaction"]["response"]["body"] = \
+                        resp_data["transaction"]["response"]["body"].replace('<<TOKEN>>', psp_token)
                 return Response(json.dumps(resp_data), mimetype='application/json')
         else:
             spreedly_api.abort(404, 'request made to deliver.json requires a visa token i.e. '
