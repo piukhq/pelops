@@ -68,9 +68,9 @@ class Redis:
 
         if new_status == retained:
             actions = {
-                added: (False, 'Card re-retained but still added.'),
-                retained: (False, 'Card already retained but re-retained.'),
-                deleted: (False, 'Card was deleted but now moved to retained.'),
+                added: (False, 'Card re-retained (Currently ADDED).'),
+                retained: (False, 'Card re-retained (Currently RETAINED).'),
+                deleted: (False, 'Card re-retained (Currently DELETED).'),
                 '': (True, 'Card retained.')
             }
 
@@ -80,10 +80,10 @@ class Redis:
 
         elif new_status == added:
             actions = {
-                added: (False, 'Card cannot be re-added.'),
-                retained: (True, 'Card added successfully.'),
-                deleted: (False, 'Card not retained.'),
-                '': (False, 'Card not retained.')
+                added: (False, f'Cannot {unique_token} be added - added card already exists.'),
+                retained: (True, f'Card {unique_token} added successfully.'),
+                deleted: (True, f'Card {unique_token} re-added.'),
+                '': (False, f'Card {unique_token} not retained.')
             }
             success, message = actions[old_status]
             if success:
@@ -91,10 +91,10 @@ class Redis:
 
         elif new_status == deleted:
             actions = {
-                added: (True, 'Card deleted successfully.'),
-                retained: (False, 'Card not yet added.'),
-                deleted: (False, 'Card already deleted.'),
-                '': (False, 'Card not yet added.')
+                added: (True, f'Card {unique_token} deleted successfully.'),
+                retained: (False, f'Card {unique_token} not yet added.'),
+                deleted: (False, f'Card {unique_token} already deleted.'),
+                '': (False, f'Card {unique_token} not yet added.')
             }
             success, message = actions[old_status]
             if success:

@@ -57,7 +57,7 @@ class Deliver(Resource):
                 active, error_type, code, unique_token = check_token(action, psp_token)
                 if active:
                     if error_type:
-                        resp_data = deliver_data['amex_error'].replace("<<error>>", code)
+                        resp_data = deliver_data['amex_error'].replace('<<error>>', code)
                         return Response(resp_data, mimetype="text/xml")
                     else:
                         if not code:
@@ -65,7 +65,6 @@ class Deliver(Resource):
                         spreedly_api.abort(code, f'No deliver data for Amex simulated psp token {unique_token}'
                                                  f' - psp token in request {psp_token}')
             action = 'DELETED' if b'unsync_details' in request.data else 'ADDED'
-            logger.info(f'{psp_token}')
             storage.update_if_per(psp_token, action)
             return Response(deliver_data[token], mimetype="text/xml")
         else:
@@ -81,8 +80,8 @@ class DeliverJson(Resource):
             if active:
                 if error_type:
                     resp_data = deliver_data['visa_error']
-                    resp_data["transaction"]["response"]["body"] = resp_data["transaction"]["response"]["body"]\
-                        .replace("<<error>>", code)
+                    resp_data["transaction"]["response"]["body"] = \
+                        resp_data["transaction"]["response"]["body"].replace('<<error>>', code)
                     return Response(json.dumps(resp_data), mimetype='application/json')
                 else:
                     if not code:
@@ -91,7 +90,8 @@ class DeliverJson(Resource):
                                              f' - psp token in request {psp_token}')
             else:
                 storage.update_if_per(psp_token, 'ADDED')
-                return Response(json.dumps(deliver_data[token]), mimetype='application/json')
+                resp_data = deliver_data[token]
+                return Response(json.dumps(resp_data), mimetype='application/json')
         else:
             spreedly_api.abort(404, 'request made to deliver.json requires a visa token i.e. '
                                     'Pelops only supports json format for VISA (VOP)')
