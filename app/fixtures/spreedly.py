@@ -228,8 +228,8 @@ Server: Apache-Coyote/1.1]]>
     "userDetails": {
         "externalUserId": "a74hd93d9812wir0174mk093dkie1",
         "communityCode": "BINKCTE01",
-        "userId": "<<TOKEN>>",
-        "userKey": "a74hd93d9812wir0174mk093dkie1",
+        "userId": "1236876-8974-2897201",
+        "userKey": "<<TOKEN>>",
         "languageId": "en-US",
         "timeZoneId": "Pacific Standard Time",
         "timeZoneShortCode": "PST",
