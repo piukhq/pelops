@@ -66,10 +66,9 @@ class Deliver(Resource):
                                                  f' - psp token in request {psp_token}')
             action = 'DELETED' if b'unsync_details' in request.data else 'ADDED'
             per, success, message, err = storage.update_if_per(psp_token, action)
+            resp = deliver_data[token]
             if per and not success:
                 resp = deliver_data['amex_error'].replace('<<error>>', err['amex'])
-            else:
-                resp = deliver_data[token]
             resp = resp.replace('<<TOKEN>>', psp_token)
             return Response(resp, mimetype="text/xml")
         else:
