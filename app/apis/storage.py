@@ -1,5 +1,6 @@
 from redis import StrictRedis
 from settings import logger
+from datetime import datetime
 
 
 class Redis:
@@ -45,14 +46,22 @@ class Redis:
         """
 
         if psp_token[:3] == 'PER':
-            success, message = self.update(psp_token[4:], new_status)
+            expiry = 6000
+            unique_token = psp_token[4:]
+            success, message = self.update(unique_token, new_status, expiry)
             logger.info(f'Card persistence: {message}')
+            try:
+                log = self.get(f'cardlog_{unique_token}')
+            except self.NotFound:
+                log = ''
+            now = datetime.now()
+            log = log + f'{now}: {message}\n'
+            self.set_expire(f'cardlog_{unique_token}', log, expiry)
         else:
             pass
 
-    def update(self, unique_token, new_status):
+    def update(self, unique_token, new_status, expiry):
 
-        expiry = 6000
         success = False
         message = 'Failed'
 
@@ -68,10 +77,10 @@ class Redis:
 
         if new_status == retained:
             actions = {
-                added: (False, 'Card re-retained (Currently ADDED).'),
-                retained: (False, 'Card re-retained (Currently RETAINED).'),
-                deleted: (False, 'Card re-retained (Currently DELETED).'),
-                '': (True, 'Card retained.')
+                added: (False, f'Card {unique_token} re-retained (Currently ADDED).'),
+                retained: (False, f'Card {unique_token} re-retained (Currently RETAINED).'),
+                deleted: (False, f'Card {unique_token} re-retained (Currently DELETED).'),
+                '': (True, f'Card {unique_token} retained.')
             }
 
             success, message = actions[old_status]

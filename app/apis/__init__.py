@@ -1,5 +1,5 @@
 import redis
-from flask import request
+from flask import request, Response
 from flask_restplus import Api, Resource
 
 from app.apis.spreedly_stubs import spreedly_api as sp1
@@ -155,9 +155,20 @@ class CardStatus(Resource):
     def get(self, unique_token):
         try:
             status = storage.get(f'card_{unique_token}')
-            return f'Card status is {status}'
+            try:
+                log = storage.get(f'cardlog_{unique_token}')
+            except storage.NotFound:
+                log = 'No log available'
+            resp = f"""
+Token {unique_token}:
+Card status is: {status}
+
+Log:
+{log}
+            """
+            return Response(resp, mimetype='text/plain')
         except storage.NotFound:
-            return 'No Card data exists'
+            return f'No Card data exists with token {unique_token}'
 
 
 class AmexOauth(Resource):
