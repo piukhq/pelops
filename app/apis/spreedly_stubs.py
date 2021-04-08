@@ -40,7 +40,6 @@ def check_and_send(per, err, success, token, psp_token):
         return Response(json.dumps(resp_data), mimetype='application/json')
 
 
-
 def spreedly_token_response(transaction_token, has_succeeded):
     return {
         "transaction": {
