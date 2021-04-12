@@ -70,8 +70,7 @@ class Redis:
         err_message = ''
 
         err_message_list = {
-            'RCCMP005': 'Card Member already Synced for the Token - Duplicate request or malfunction in '
-                                   'input request.',
+            'RCCMP005': 'Card Member already Synced for the Token - Duplicate request or malfunction in input request.',
             'RCCMU009': 'Invalid Token/Token not found.',
             'RTMENRE0025': 'The user key provided is already in use - duplicate card.',
             'RTMENRE0021': 'Invalid user status or user already enrolled',
