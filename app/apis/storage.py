@@ -65,7 +65,7 @@ class Redis:
         # Also returns error codes and messages for later use, if request fails logic.
         success = False
         message = 'Failed'
-        err = {}
+        err = None
         err_code = ''
         err_message = ''
 
@@ -107,7 +107,7 @@ class Redis:
                          'visa': 'RTMENRE0025'}),
                 retained: (True, True, f'Card {psp_token} added successfully.', None),
                 deleted: (True, True, f'Card {psp_token} re-added.', None),
-                '': (False, False, f'Card {psp_token} not yet retained.', {'amex': '',
+                '': (False, False, f'Card {psp_token} not yet retained.', {'amex': 'RCCMU009',
                                                                            'visa': 'RTMENRE0021'})
             }
             change, success, message, err = actions[old_status]
