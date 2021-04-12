@@ -137,14 +137,14 @@ class VopUnenroll(Resource):
                     sp1.abort(code, f"Failed VOP Unenrol request for {unique_token}")
 
             else:
-                per, success, message, err = storage.update_if_per(user_key, 'DELETED')
+                per, success, message, err, err_message = storage.update_if_per(user_key, 'DELETED', 'visa')
                 if per and not success:
                     return {
                                "correlationId": "ce708e6a-fd5f-48cc-b9ff-ce518a6fda1a",
                                "responseDateTime": "2020-01-29T15:02:50.8109336Z",
                                "responseStatus": {
-                                   "code": err['vop'],
-                                   "message": "VOP Unenroll failure message.",
+                                   "code": err,
+                                   "message": err_message,
                                    "responseStatusDetails": []
                                }
                            }, 200
@@ -163,15 +163,15 @@ class VopUnenroll(Resource):
 
 class CardStatus(Resource):
 
-    def get(self, unique_token):
+    def get(self, psp_token):
         try:
-            status = storage.get(f'card_{unique_token}')
+            status = storage.get(f'card_{psp_token}')
             try:
-                log = storage.get(f'cardlog_{unique_token}')
+                log = storage.get(f'cardlog_{psp_token}')
             except storage.NotFound:
                 log = 'No log available'
             resp = f"""
-Token {unique_token}:
+Token {psp_token}:
 Card status is: {status}
 
 Log:
@@ -179,7 +179,7 @@ Log:
             """
             return Response(resp, mimetype='text/plain')
         except storage.NotFound:
-            return f'No Card data exists with token {unique_token}'
+            return f'No Card data exists with token {psp_token}'
 
 
 class AmexOauth(Resource):
@@ -199,5 +199,5 @@ stub_api.add_resource(Livez, "/livez")
 stub_api.add_resource(VopActivate, "/vop/v1/activations/merchant")
 stub_api.add_resource(VopDeactivate, "/vop/v1/deactivations/merchant")
 stub_api.add_resource(VopUnenroll, "/vop/v1/users/unenroll")
-stub_api.add_resource(CardStatus, "/cardstatus/<unique_token>")
+stub_api.add_resource(CardStatus, "/cardstatus/<psp_token>")
 stub_api.add_resource(AmexOauth, "/apiplatform/v2/oauth/token/mac")

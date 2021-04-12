@@ -29,7 +29,7 @@ class Redis:
     def delete(self, key):
         self.store.delete(self._key(key))
 
-    def update_if_per(self, psp_token, new_status):
+    def update_if_per(self, psp_token, new_status, token):
 
         """
         For Persistence (PER):
@@ -45,70 +45,91 @@ class Redis:
         The status of cards added/deleted etc. without the PER prefix will not be stored/updated.
         """
 
-        if psp_token[:3] == 'PER':
+        if psp_token[:4] == 'PER_':
             expiry = 6000
-            unique_token = psp_token[4:]
-            success, message, err = self.update(unique_token, new_status, expiry)
+            success, message, err_code, err_message = self.update(psp_token, new_status, token, expiry)
             logger.info(f'Card persistence: {message}')
             try:
-                log = self.get(f'cardlog_{unique_token}')
+                log = self.get(f'cardlog_{psp_token}')
             except self.NotFound:
                 log = ''
             now = datetime.now()
             log = log + f'{now}: {message}\n'
-            self.set_expire(f'cardlog_{unique_token}', log, expiry)
-            return True, success, message, err
+            self.set_expire(f'cardlog_{psp_token}', log, expiry)
+            return True, success, message, err_code, err_message
         else:
-            return False, False, '', {}
+            return False, False, '', {}, ''
 
-    def update(self, unique_token, new_status, expiry):
-
+    def update(self, psp_token, new_status, token, expiry):
+        # Checks logic for retain/add/delete to persistence layer and applies/rejects requested change as necessary.
+        # Also returns error codes and messages for later use, if request fails logic.
         success = False
         message = 'Failed'
+        err = {}
+        err_code = ''
+        err_message = ''
+
+        err_message_list = {
+            'RCCMP005': 'Card Member already Synced for the Token - Duplicate request or malfunction in '
+                                   'input request.',
+            'RCCMU009': 'Invalid Token/Token not found.',
+            'RTMENRE0025': 'The user key provided is already in use - duplicate card.',
+            'RTMENRE0021': 'Invalid user status or user already enrolled',
+            'RTMENRE0050': 'Invalid user status',
+            'RTMENRE0026': 'Enroll User not found',
+        }
 
         retained = 'RETAINED'
         added = 'ADDED'
         deleted = 'DELETED'
 
         try:
-            old_status = self.get(f'card_{unique_token}')
+            old_status = self.get(f'card_{psp_token}')
         except self.NotFound:
-            self.set_expire(f'card_{unique_token}', '', expiry)
+            self.set_expire(f'card_{psp_token}', '', expiry)
             old_status = ''
 
         if new_status == retained:
             actions = {
-                added: (False, True, f'Card {unique_token} re-retained (Currently ADDED).', None),
-                retained: (False, True, f'Card {unique_token} re-retained (Currently RETAINED).', None),
-                deleted: (False, True, f'Card {unique_token} re-retained (Currently DELETED).', None),
-                '': (True, True, f'Card {unique_token} retained.', None)
+                added: (False, True, f'Card {psp_token} re-retained (Currently ADDED).', None),
+                retained: (False, True, f'Card {psp_token} re-retained (Currently RETAINED).', None),
+                deleted: (False, True, f'Card {psp_token} re-retained (Currently DELETED).', None),
+                '': (True, True, f'Card {psp_token} retained.', None)
             }
 
             change, success, message, err = actions[old_status]
             if change:
-                self.set_expire(f'card_{unique_token}', new_status, expiry)
+                self.set_expire(f'card_{psp_token}', new_status, expiry)
 
         elif new_status == added:
             actions = {
-                added: (False, False, f'Card {unique_token} cannot be added - card already exists.',
-                        {'amex': '', 'vop': 'RTMENRE0025'}),
-                retained: (True, True, f'Card {unique_token} added successfully.', None),
-                deleted: (True, True, f'Card {unique_token} re-added.', None),
-                '': (False, False, f'Card {unique_token} not yet retained.', {'amex': '', 'vop': 'RTMENRE0021'})
+                added: (False, False, f'Card {psp_token} cannot be added - card already exists.',
+                        {'amex': 'RCCMP005',
+                         'visa': 'RTMENRE0025'}),
+                retained: (True, True, f'Card {psp_token} added successfully.', None),
+                deleted: (True, True, f'Card {psp_token} re-added.', None),
+                '': (False, False, f'Card {psp_token} not yet retained.', {'amex': '',
+                                                                           'visa': 'RTMENRE0021'})
             }
             change, success, message, err = actions[old_status]
             if change:
-                self.set_expire(f'card_{unique_token}', new_status, expiry)
+                self.set_expire(f'card_{psp_token}', new_status, expiry)
 
         elif new_status == deleted:
             actions = {
-                added: (True, True, f'Card {unique_token} deleted successfully.', None),
-                retained: (False, False, f'Card {unique_token} not yet added.', {'amex': '', 'vop': 'RTMENRE0050'}),
-                deleted: (False, False, f'Card {unique_token} already deleted.', {'amex': '', 'vop': 'RTMENRE0026'}),
-                '': (False, False, f'Card {unique_token} not yet added.', {'amex': '', 'vop': 'RTMENRE0026'})
+                added: (True, True, f'Card {psp_token} deleted successfully.', None),
+                retained: (False, False, f'Card {psp_token} not yet added.', {'amex': 'RCCMU009',
+                                                                              'visa': 'RTMENRE0050'}),
+                deleted: (False, False, f'Card {psp_token} already deleted.', {'amex': 'RCCMU009',
+                                                                               'visa': 'RTMENRE0026'}),
+                '': (False, False, f'Card {psp_token} not yet added.', {'amex': 'RCCMU009',
+                                                                        'visa': 'RTMENRE0026'})
             }
             change, success, message, err = actions[old_status]
             if change:
-                self.set_expire(f'card_{unique_token}', new_status, expiry)
+                self.set_expire(f'card_{psp_token}', new_status, expiry)
 
-        return success, message, err
+        if err:
+            err_code = err[token]
+            err_message = err_message_list[err_code]
+        return success, message, err_code, err_message

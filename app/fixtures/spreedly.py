@@ -45,7 +45,7 @@ Server: Apache-Coyote/1.1]]>
     </headers>
     <body>
       <![CDATA[{"correlationId":"1613435163",
-      "status":"Success","respCd":"RCCMP000","respDesc":"Card member successfully enrolled.",
+      "status":"Success","respCd":"RCCMP000","respDesc":"Card member successfully enrolled/unenrolled.",
       "cmAlias1":"QdjGCPSiYYDKxPMvvluYRG6zq79"}]]>
     </body>
   </response>
@@ -142,7 +142,7 @@ Server: Apache-Coyote/1.1]]>
     </headers>
     <body>
       <![CDATA[{"correlationId":"1613436239",
-      "status":"Failure","respCd":"<<error>>","respDesc":"Mocked error from Pelops",
+      "status":"Failure","respCd":"<<error>>","respDesc":"<<errormessage>>",
       "cmAlias1":"QdjGCPSiYYDKxPMvvluYRG6zq79"}]]>
     </body>
   </response>
@@ -292,7 +292,7 @@ Server: Apache-Coyote/1.1]]>
         "message":"Request validation failed.",
         "responseStatusDetails":[{
             "code":"<<error>>",
-            "message": "User Mocked Error trapped by Pelops"}
+            "message": "<<errormessage>>"}
         ]}
 }
 """,
