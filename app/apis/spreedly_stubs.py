@@ -38,7 +38,6 @@ def check_and_send(per, err, success, token, psp_token, err_message):
             resp_data = deliver_data[token].copy()
             resp_data["transaction"]["response"]["body"] = \
                 resp_data["transaction"]["response"]["body"].replace('<<TOKEN>>', psp_token)
-        logger.info(resp_data)
         return Response(json.dumps(resp_data), mimetype='application/json')
 
 
