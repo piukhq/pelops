@@ -1,10 +1,13 @@
 import redis
-from flask import request
+from flask import request, Response
 from flask_restplus import Api, Resource
 
 from app.apis.spreedly_stubs import spreedly_api as sp1
 from settings import REDIS_URL, logger
 from .psp_token import check_token
+from .storage import Redis
+
+storage = Redis(url=REDIS_URL)
 
 stub_api = Api(
     ui=False,
@@ -134,16 +137,49 @@ class VopUnenroll(Resource):
                     sp1.abort(code, f"Failed VOP Unenrol request for {unique_token}")
 
             else:
-                return {
-                    "correlationId": "ce708e6a-fd5f-48cc-b9ff-ce518a6fda1a",
-                    "responseDateTime": "2020-01-29T15:02:50.8109336Z",
-                    "responseStatus": {
-                        "code": "SUCCESS",
-                        "message": "Request proceed successfully without error."
-                    }
-                }, 201
+                per, success, message, err, err_message = storage.update_if_per(user_key, 'DELETED', 'visa')
+                if per and not success:
+                    return {
+                               "correlationId": "ce708e6a-fd5f-48cc-b9ff-ce518a6fda1a",
+                               "responseDateTime": "2020-01-29T15:02:50.8109336Z",
+                               "responseStatus": {
+                                   "code": err,
+                                   "message": err_message,
+                                   "responseStatusDetails": []
+                               }
+                           }, 200
+                else:
+                    return {
+                        "correlationId": "ce708e6a-fd5f-48cc-b9ff-ce518a6fda1a",
+                        "responseDateTime": "2020-01-29T15:02:50.8109336Z",
+                        "responseStatus": {
+                            "code": "SUCCESS",
+                            "message": "Request proceed successfully without error."
+                        }
+                    }, 201
         else:
             sp1.abort(400, "Invalid request")
+
+
+class CardStatus(Resource):
+
+    def get(self, psp_token):
+        try:
+            status = storage.get(f'card_{psp_token}')
+            try:
+                log = storage.get(f'cardlog_{psp_token}')
+            except storage.NotFound:
+                log = 'No log available'
+            resp = f"""
+Token {psp_token}:
+Card status is: {status}
+
+Log:
+{log}
+            """
+            return Response(resp, mimetype='text/plain')
+        except storage.NotFound:
+            return f'No Card data exists with token {psp_token}'
 
 
 class AmexOauth(Resource):
@@ -163,5 +199,5 @@ stub_api.add_resource(Livez, "/livez")
 stub_api.add_resource(VopActivate, "/vop/v1/activations/merchant")
 stub_api.add_resource(VopDeactivate, "/vop/v1/deactivations/merchant")
 stub_api.add_resource(VopUnenroll, "/vop/v1/users/unenroll")
-
+stub_api.add_resource(CardStatus, "/cardstatus/<psp_token>")
 stub_api.add_resource(AmexOauth, "/apiplatform/v2/oauth/token/mac")

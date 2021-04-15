@@ -18,6 +18,29 @@ PAYMENT_TOKEN_FILEPATH = "app/fixtures/payment.json"
 VOID_FAILURE_FLAG = "voidfail"
 
 
+def check_and_send(per, err, success, token, psp_token, err_message):
+    # Checks for persistence, and if so then sends or rejects response in line with persistence logic (see
+    # storage.update_if_per()). Also adds in psp_tokens, error codes and error messages as necessary.
+    if token == 'amex':
+        resp_data = deliver_data[token].replace('<<TOKEN>>', psp_token)
+        if per and not success:
+            resp_data = deliver_data['amex_error'].replace('<<TOKEN>>', psp_token)
+            resp_data = resp_data.replace('<<error>>', err).replace('<<errormessage>>', err_message)
+        return Response(resp_data, mimetype="text/xml")
+    elif token == 'visa':
+        if per and not success:
+            resp_data = deliver_data['visa_error'].copy()
+            resp_data["transaction"]["response"]["body"] = \
+                resp_data["transaction"]["response"]["body"].replace('<<error>>', err).replace('<<errormessage>>',
+                                                                                               err_message)
+            resp_data["transaction"]["payment_method"]["token"] = psp_token
+        else:
+            resp_data = deliver_data[token].copy()
+            resp_data["transaction"]["response"]["body"] = \
+                resp_data["transaction"]["response"]["body"].replace('<<TOKEN>>', psp_token)
+        return Response(json.dumps(resp_data), mimetype='application/json')
+
+
 def spreedly_token_response(transaction_token, has_succeeded):
     return {
         "transaction": {
@@ -57,14 +80,16 @@ class Deliver(Resource):
                 active, error_type, code, unique_token = check_token(action, psp_token)
                 if active:
                     if error_type:
-                        resp_data = deliver_data['amex_error'].replace("<<error>>", code)
+                        resp_data = deliver_data['amex_error'].copy().replace('<<error>>', code)
                         return Response(resp_data, mimetype="text/xml")
                     else:
                         if not code:
                             code = 404
                         spreedly_api.abort(code, f'No deliver data for Amex simulated psp token {unique_token}'
                                                  f' - psp token in request {psp_token}')
-            return Response(deliver_data[token], mimetype="text/xml")
+            action = 'DELETED' if b'unsync_details' in request.data else 'ADDED'
+            per, success, message, err, err_message = storage.update_if_per(psp_token, action, token)
+            return check_and_send(per, err, success, token, psp_token, err_message)
         else:
             spreedly_api.abort(404, "No deliver data for token {}".format(token))
 
@@ -78,8 +103,9 @@ class DeliverJson(Resource):
             if active:
                 if error_type:
                     resp_data = deliver_data['visa_error']
-                    resp_data["transaction"]["response"]["body"] = resp_data["transaction"]["response"]["body"]\
-                        .replace("<<error>>", code)
+                    resp_data["transaction"]["response"]["body"] = \
+                        resp_data["transaction"]["response"]["body"].replace('<<error>>', code)
+                    resp_data["transaction"]["payment_method"]["token"] = psp_token
                     return Response(json.dumps(resp_data), mimetype='application/json')
                 else:
                     if not code:
@@ -87,7 +113,8 @@ class DeliverJson(Resource):
                     spreedly_api.abort(code, f'No deliver data for Visa simulated psp token {unique_token}'
                                              f' - psp token in request {psp_token}')
             else:
-                return Response(json.dumps(deliver_data[token]), mimetype='application/json')
+                per, success, message, err, err_message = storage.update_if_per(psp_token, 'ADDED', token)
+                return check_and_send(per, err, success, token, psp_token, err_message)
         else:
             spreedly_api.abort(404, 'request made to deliver.json requires a visa token i.e. '
                                     'Pelops only supports json format for VISA (VOP)')
@@ -105,8 +132,9 @@ class Export(Resource):
 @spreedly_api.route('/payment_methods/<psp_token>/retain.json')
 class Retain(Resource):
     def put(self, psp_token):
-        active, error_type, code, _ = check_token('RET', psp_token)
+        active, error_type, code, unique_code = check_token('RET', psp_token)
         if not active:
+            storage.update_if_per(psp_token, 'RETAINED', '')
             return True
         else:
             if error_type:      # We want to ignore payment error strings if set for retain ie we might use xxx
