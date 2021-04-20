@@ -34,7 +34,7 @@ class Redis:
     def delete(self, key):
         self.store.delete(self._key(key))
 
-    def rlist_to_list (self, key):
+    def rlist_to_list(self, key):
         # Reads redis list and decodes elements to string
         list_bytes = self.store.lrange(key, 0, -1)
         list_decoded = [x.decode("utf-8") for x in list_bytes]
