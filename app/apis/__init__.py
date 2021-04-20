@@ -179,20 +179,19 @@ class CardStatus(Resource):
     def get(self, psp_token):
         try:
             status = storage.get(f'card_{psp_token}')
-            try:
-                log = storage.get(f'cardlog_{psp_token}')
-            except storage.NotFound:
-                log = 'No log available'
-            resp = f"""
-Token {psp_token}:
-Card status is: {status}
-
-Log:
-{log}
-            """
-            return Response(resp, mimetype='text/plain')
         except storage.NotFound:
             return f'No Card data exists with token {psp_token}'
+
+        try:
+            log_str = storage.rlist_to_list(f'cardlog_{psp_token}')
+        except storage.NotFound:
+            log_str = 'No log available'
+
+        return {
+                "Token": psp_token,
+                "Card status": status,
+                "Log": log_str
+                }, 200
 
 
 class AmexOauth(Resource):

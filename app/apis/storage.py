@@ -20,6 +20,11 @@ class Redis:
     def set_expire(self, key, value, expire=600):
         self.store.setex(self._key(key), expire, value)
 
+    def append_to_rlist(self, key, value, expire=600):
+        # Appends value to redis list and resets expiry
+        self.store.rpush(key, value)
+        self.store.expire(key, expire)
+
     def get(self, key):
         val = self.store.get(self._key(key))
         if not val:
@@ -28,6 +33,12 @@ class Redis:
 
     def delete(self, key):
         self.store.delete(self._key(key))
+
+    def rlist_to_list (self, key):
+        # Reads redis list and decodes elements to string
+        list_bytes = self.store.lrange(key, 0, -1)
+        list_decoded = [x.decode("utf-8") for x in list_bytes]
+        return list_decoded
 
     def update_if_per(self, psp_token, new_status, token):
 
@@ -46,21 +57,20 @@ class Redis:
         """
 
         if psp_token[:4] == 'PER_':
+
             expiry = 6000
-            success, message, err_code, err_message = self.update(psp_token, new_status, token, expiry)
-            logger.info(f'Card persistence: {message}')
-            try:
-                log = self.get(f'cardlog_{psp_token}')
-            except self.NotFound:
-                log = ''
+
+            success, message, err_code, err_message = self.update_status(psp_token, new_status, token, expiry)
+
             now = datetime.now()
-            log = log + f'{now}: {message}\n'
-            self.set_expire(f'cardlog_{psp_token}', log, expiry)
+            logger.info(f'Card Persistence: {message}')
+            self.append_to_rlist(f'cardlog_{psp_token}', f'[{now}] {message}', expiry)
+
             return True, success, message, err_code, err_message
         else:
             return False, False, '', {}, ''
 
-    def update(self, psp_token, new_status, token, expiry):
+    def update_status(self, psp_token, new_status, token, expiry):
         # Checks logic for retain/add/delete to persistence layer and applies/rejects requested change as necessary.
         # Also returns error codes and messages for later use, if request fails logic.
         success = False
