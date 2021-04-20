@@ -180,7 +180,10 @@ class CardStatus(Resource):
         try:
             status = storage.get(f'card_{psp_token}')
         except storage.NotFound:
-            return f'No Card data exists with token {psp_token}'
+            return {
+                       "Token": psp_token,
+                       "Message": "No card data found"
+                   }, 404
 
         try:
             log_str = storage.rlist_to_list(f'cardlog_{psp_token}')
@@ -188,9 +191,9 @@ class CardStatus(Resource):
             log_str = 'No log available'
 
         return {
-                "Token": psp_token,
-                "Card status": status,
-                "Log": log_str
+                    "Token": psp_token,
+                    "Card status": status,
+                    "Log": log_str
                 }, 200
 
 
