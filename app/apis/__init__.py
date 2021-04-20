@@ -1,5 +1,5 @@
 import redis
-from flask import request, Response
+from flask import request
 from flask_restplus import Api, Resource
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import check_password_hash, generate_password_hash
