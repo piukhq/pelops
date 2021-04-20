@@ -10,3 +10,5 @@ def create_app(config_name="settings"):
     stub_api.init_app(app)
 
     return app
+
+

@@ -1,11 +1,18 @@
 import redis
 from flask import request, Response
 from flask_restplus import Api, Resource
+from flask_httpauth import HTTPBasicAuth
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.apis.spreedly_stubs import spreedly_api as sp1
 from settings import REDIS_URL, logger
 from .psp_token import check_token
 from .storage import Redis
+from settings import AUTH_USERNAME, AUTH_PASSWORD
+
+auth = HTTPBasicAuth()
+
+users = {AUTH_USERNAME: generate_password_hash(AUTH_PASSWORD)}
 
 storage = Redis(url=REDIS_URL)
 
@@ -19,6 +26,12 @@ stub_api = Api(
 )
 
 stub_api.add_namespace(sp1)
+
+
+@auth.verify_password
+def verify_password(username, password):
+    if username in users and check_password_hash(users.get(username), password):
+        return username
 
 
 class Healthz(Resource):
@@ -161,6 +174,7 @@ class VopUnenroll(Resource):
             sp1.abort(400, "Invalid request")
 
 
+@auth.login_required
 class CardStatus(Resource):
 
     def get(self, psp_token):
