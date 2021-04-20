@@ -174,9 +174,9 @@ class VopUnenroll(Resource):
             sp1.abort(400, "Invalid request")
 
 
-@auth.login_required
 class CardStatus(Resource):
 
+    @auth.login_required
     def get(self, psp_token):
         try:
             status = storage.get(f'card_{psp_token}')

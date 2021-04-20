@@ -10,8 +10,8 @@ DEV_HOST = env_var("DEV_HOST", "0.0.0.0")
 DEV_PORT = env_var("DEV_PORT", "5050")
 DEBUG = env_var("DEBUG", False)
 
-AUTH_USERNAME = env_var("binktest", "")
-AUTH_PASSWORD = env_var("987g8ovb293bv029b3nvp9083bv0p1bf1f0hg874vb8g62vi", "u37553bvo89p9n2qnf9ow8bv9we8bn1oib6452v9")
+AUTH_USERNAME = env_var("AUTH_USERNAME", "binktest")
+AUTH_PASSWORD = env_var("AUTH_PASSWORD", "9702u37553bvo89p9n2qnf9ow8bv9we8bn1oib6452v9")
 
 REDIS_PASSWORD = env_var("REDIS_PASSWORD", "")
 REDIS_HOST = env_var("REDIS_HOST", "localhost")
