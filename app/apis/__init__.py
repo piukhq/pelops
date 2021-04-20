@@ -11,7 +11,6 @@ from .storage import Redis
 from settings import AUTH_USERNAME, AUTH_PASSWORD
 
 auth = HTTPBasicAuth()
-
 users = {AUTH_USERNAME: generate_password_hash(AUTH_PASSWORD)}
 
 storage = Redis(url=REDIS_URL)
