@@ -1,11 +1,17 @@
 import redis
-from flask import request, Response
+from flask import request
 from flask_restplus import Api, Resource
+from flask_httpauth import HTTPBasicAuth
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.apis.spreedly_stubs import spreedly_api as sp1
 from settings import REDIS_URL, logger
 from .psp_token import check_token
 from .storage import Redis
+from settings import AUTH_USERNAME, AUTH_PASSWORD
+
+auth = HTTPBasicAuth()
+users = {AUTH_USERNAME: generate_password_hash(AUTH_PASSWORD)}
 
 storage = Redis(url=REDIS_URL)
 
@@ -19,6 +25,12 @@ stub_api = Api(
 )
 
 stub_api.add_namespace(sp1)
+
+
+@auth.verify_password
+def verify_password(username, password):
+    if username in users and check_password_hash(users.get(username), password):
+        return username
 
 
 class Healthz(Resource):
@@ -163,23 +175,26 @@ class VopUnenroll(Resource):
 
 class CardStatus(Resource):
 
+    @auth.login_required
     def get(self, psp_token):
         try:
             status = storage.get(f'card_{psp_token}')
-            try:
-                log = storage.get(f'cardlog_{psp_token}')
-            except storage.NotFound:
-                log = 'No log available'
-            resp = f"""
-Token {psp_token}:
-Card status is: {status}
-
-Log:
-{log}
-            """
-            return Response(resp, mimetype='text/plain')
         except storage.NotFound:
-            return f'No Card data exists with token {psp_token}'
+            return {
+                       "Token": psp_token,
+                       "Message": "No card data found"
+                   }, 404
+
+        try:
+            log_str = storage.rlist_to_list(f'cardlog_{psp_token}')
+        except storage.NotFound:
+            log_str = 'No log available'
+
+        return {
+                    "Token": psp_token,
+                    "Card status": status,
+                    "Log": log_str
+                }, 200
 
 
 class AmexOauth(Resource):
