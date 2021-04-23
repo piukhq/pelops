@@ -1,3 +1,5 @@
+import uuid
+
 from redis import StrictRedis
 from settings import logger
 from datetime import datetime
@@ -39,6 +41,10 @@ class Redis:
         list_bytes = self.store.lrange(key, 0, -1)
         list_decoded = [x.decode("utf-8") for x in list_bytes]
         return list_decoded
+
+    def random_string(self):
+        uid = uuid.uuid4()
+        return uid.hex
 
     def update_if_per(self, psp_token, new_status, token):
 
@@ -142,3 +148,19 @@ class Redis:
             err_code = err[token]
             err_message = err_message_list[err_code]
         return success, message, err_code, err_message
+
+    def add_activation(self, psp_token, offer_id):
+        activation_id = self.random_string()
+
+        if psp_token[:4] == 'PER_':
+            self.append_to_rlist(f'card_activations_{psp_token}', activation_id)
+            self.append_to_rlist(f'cardlog_{psp_token}', f'Activated card/scheme pair with VOP for scheme {offer_id}. '
+                                                         f'Activation id: {activation_id}')
+        return activation_id
+
+    def remove_activation(self, psp_token, activation_id):
+        if psp_token[:4] == 'PER_':
+            self.store.lrem(f'card_activations_{psp_token}', -1, activation_id)
+            self.append_to_rlist(f'cardlog_{psp_token}', f'Deactivated card/scheme pair.'
+                                                         f' Activation id: {activation_id}')
+        return

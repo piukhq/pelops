@@ -3,6 +3,7 @@ from flask import request
 from flask_restplus import Api, Resource
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import check_password_hash, generate_password_hash
+from datetime import datetime
 
 from app.apis.spreedly_stubs import spreedly_api as sp1
 from settings import REDIS_URL, logger
@@ -59,13 +60,14 @@ class VopActivate(Resource):
         data = request.get_json()
         logger.info(f"request:  /vop/v1/activations/merchant  body: {data}")
         user_key = data.get('userKey')
+        offer_id = data.get('offerId')
         active, error_type, code, unique_token = check_token('ACT', user_key)
         if active:
             if error_type:
                 return {
                            "activationId": "88395654-0b8a-4f2d-9046-2b8669f76bd2",
                            "correlationId": "96e38ed5-91d5-4567-82e9-6c441f4ca300",
-                           "responseDateTime": "2020-01-30T11:13:43.5765614Z",
+                           "responseDateTime": datetime.now(),
                            "responseStatus": {
                                "code": code,
                                "message": "VOP Activate failure message.",
@@ -78,8 +80,11 @@ class VopActivate(Resource):
                 sp1.abort(code, f"Failed VOP Activation request for {unique_token}")
 
         else:
+
+            activation_id = storage.add_activation(psp_token=psp_token, offer_id=offer_id)
+
             return {
-                       "activationId": "88395654-0b8a-4f2d-9046-2b8669f76bd2",
+                       "activationId": activation_id,
                        "correlationId": "96e38ed5-91d5-4567-82e9-6c441f4ca300",
                        "responseDateTime": "2020-01-30T11:13:43.5765614Z",
                        "responseStatus": {
@@ -96,15 +101,16 @@ class VopDeactivate(Resource):
         logger.info(f"request:  vop/v1/deactivations/merchant  body: {data}")
         user_key = data.get('userKey')
         active, error_type, code, unique_token = check_token('DEACT', user_key)
+        activation_id = data.get('activation_id')
         if active:
             if error_type:
                 return {
-                           "activationId": "88395654-0b8a-4f2d-9046-2b8669f76bd2",
+                           "activationId": activation_id,
                            "correlationId": "96e38ed5-91d5-4567-82e9-6c441f4ca300",
-                           "responseDateTime": "2020-01-30T11:13:43.5765614Z",
+                           "responseDateTime": datetime.now(),
                            "responseStatus": {
                                "code": code,
-                               "message": "VOP DeActivate failure message.",
+                               "message": "VOP Deactivate failure message.",
                                "responseStatusDetails": []
                            }
                        }, 200
@@ -114,9 +120,11 @@ class VopDeactivate(Resource):
                 sp1.abort(code, f"Failed VOP DeActivation request for {unique_token}")
 
         else:
+            storage.remove_activation(psp_token=psp_token, activation_id=activation_id)
             return {
+                "activationId": activation_id,
                 "correlationId": "96e38ed5-91d5-4567-82e9-6c441f4ca300",
-                "responseDateTime": "2020-01-30T11:13:43.5765614Z",
+                "responseDateTime": datetime.now(),
                 "responseStatus": {
                     "code": "SUCCESS",
                     "message": "Request proceed successfully without error."
@@ -136,7 +144,7 @@ class VopUnenroll(Resource):
                 if error_type:
                     return {
                                "correlationId": "ce708e6a-fd5f-48cc-b9ff-ce518a6fda1a",
-                               "responseDateTime": "2020-01-29T15:02:50.8109336Z",
+                               "responseDateTime": datetime.now(),
                                "responseStatus": {
                                    "code": code,
                                    "message": "VOP Unenroll failure message.",
@@ -153,7 +161,7 @@ class VopUnenroll(Resource):
                 if per and not success:
                     return {
                                "correlationId": "ce708e6a-fd5f-48cc-b9ff-ce518a6fda1a",
-                               "responseDateTime": "2020-01-29T15:02:50.8109336Z",
+                               "responseDateTime": datetime.now(),
                                "responseStatus": {
                                    "code": err,
                                    "message": err_message,
@@ -163,7 +171,7 @@ class VopUnenroll(Resource):
                 else:
                     return {
                         "correlationId": "ce708e6a-fd5f-48cc-b9ff-ce518a6fda1a",
-                        "responseDateTime": "2020-01-29T15:02:50.8109336Z",
+                        "responseDateTime": datetime.now(),
                         "responseStatus": {
                             "code": "SUCCESS",
                             "message": "Request proceed successfully without error."
@@ -190,9 +198,15 @@ class CardStatus(Resource):
         except storage.NotFound:
             log_str = 'No log available'
 
+        try:
+            activations = storage.rlist_to_list(f'card_activations_{psp_token}')
+        except storage.NotFound:
+            activations = 'No activations found'
+
         return {
                     "Token": psp_token,
                     "Card status": status,
+                    "Current activations": activations,
                     "Log": log_str
                 }, 200
 
