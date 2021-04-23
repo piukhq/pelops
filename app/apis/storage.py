@@ -153,14 +153,37 @@ class Redis:
         activation_id = self.random_string()
 
         if psp_token[:4] == 'PER_':
-            self.append_to_rlist(f'card_activations_{psp_token}', activation_id)
-            self.append_to_rlist(f'cardlog_{psp_token}', f'Activated card/scheme pair with VOP for scheme {offer_id}. '
-                                                         f'Activation id: {activation_id}')
-        return activation_id
+            try:
+                status = self.get(f'card_{psp_token}')
+            except self.NotFound:
+                return False
+            if status == 'ADDED':
+                self.append_to_rlist(f'card_activations_{psp_token}', activation_id)
+                self.append_to_rlist(f'cardlog_{psp_token}', f'Activated card/scheme pair with VOP for scheme {offer_id}. '
+                                                             f'Activation id: {activation_id}')
+                logger.info(f'Card persistence: Activation {activation_id} created')
+            else:
+                self.append_to_rlist(f'cardlog_{psp_token}',
+                                     f'Activation failed for: {activation_id}. No added card found')
+                logger.info(f'Card persistence: Activation {activation_id} failed. No added card found')
+                return False
+        return True
 
     def remove_activation(self, psp_token, activation_id):
         if psp_token[:4] == 'PER_':
-            self.store.lrem(f'card_activations_{psp_token}', -1, activation_id)
-            self.append_to_rlist(f'cardlog_{psp_token}', f'Deactivated card/scheme pair.'
-                                                         f' Activation id: {activation_id}')
-        return
+            try:
+                status = self.get(f'card_{psp_token}')
+            except self.NotFound:
+                return False
+            if status == 'ADDED':
+                self.store.lrem(f'card_activations_{psp_token}', -1, activation_id)
+                self.append_to_rlist(f'cardlog_{psp_token}', f'Deactivated card/scheme pair.'
+                                                             f' Activation id: {activation_id}')
+                logger.info(f'Card persistence: Activation {activation_id} deactivated')
+            else:
+                self.append_to_rlist(f'cardlog_{psp_token}', f'Deactivation failed for activation_id {activation_id}. '
+                                                             f'No added card found.')
+                logger.info(f'Card persistence: Deactivation failed for activation_id {activation_id}. '
+                            f'No added card found')
+                return False
+        return True
