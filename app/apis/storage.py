@@ -144,8 +144,9 @@ class Redis:
         return success, log_message, err_code, err_message
 
     def add_activation(self, psp_token, offer_id, activation_id):
-        # If using the PER_ prefix (see above), activation records will be persistently stored and return as successful,
-        # provided the associated psp_token has a status of 'ADDED' within Pelops' persistence layer.
+        # If using the PER_ prefix (see above), activation records will be persistently stored and request
+        # returned as successful, provided the associated psp_token has a status of 'ADDED' within Pelops'
+        # persistence layer.
 
         now = datetime.now()
         if psp_token[:4] == 'PER_':
@@ -166,8 +167,9 @@ class Redis:
         return True
 
     def remove_activation(self, psp_token, activation_id):
-        # If using the PER_ prefix (see above), deactivation records will be persistently stored and return as
-        # successful, provided the associated psp_token has a status of 'ADDED' within Pelops' persistence layer.
+        # If using the PER_ prefix (see above), deactivation records will be removed (as well as logged) and request
+        # will return as successful, provided the associated psp_token has a status of 'ADDED' within Pelops'
+        # persistence layer.
 
         now = datetime.now()
         if psp_token[:4] == 'PER_':
@@ -178,6 +180,7 @@ class Redis:
             if status == 'ADDED':
 
                 if self.store.lrem(f'card_activations_{psp_token}', -1, activation_id):
+                    # lrem returns number of removed items, 0 if none found/removed
                     self.append_to_rlist(f'cardlog_{psp_token}', f'[{now}] Deactivated card/scheme pair. '
                                                                  f'Activation id: {activation_id}')
                     logger.info(f'Card persistence: Activation {activation_id} deactivated')

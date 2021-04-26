@@ -85,9 +85,9 @@ class VopActivate(Resource):
                 http_response = 201
 
             else:
-                code = "FAILED"
-                message = "No active card with this userKey found. Activation cannot be added."
-                http_response = 404
+                code = "RTMOACTVE03"
+                message = "Validation failed - Invalid User."
+                http_response = 200
 
         return {
                    "activationId": activation_id,
@@ -130,9 +130,9 @@ class VopDeactivate(Resource):
                 http_response = 200
 
             else:
-                code = "FAILED"
-                message = "Activation does not exist or cannot be deleted."
-                http_response = 404
+                code = "RTMOACTVE03"
+                message = "Validation failed - Invalid User."
+                http_response = 200
 
         return {
                    "activationId": activation_id,
@@ -164,7 +164,7 @@ class VopUnenroll(Resource):
 
                 else:
                     if not code:
-                        code = 404
+                        code = 500
                     sp1.abort(code, f"Failed VOP Unenrol request for {unique_token}")
 
             else:
@@ -172,11 +172,11 @@ class VopUnenroll(Resource):
                 if per and not success:
                     message = err_message
                     http_response = 200
-                    code = "FAILED"
+                    code = err
                 else:
                     code = "SUCCESS"
                     message = "Request proceed successfully without error."
-                    http_response = 201
+                    http_response = 200
 
             return {
                 "correlationId": "ce708e6a-fd5f-48cc-b9ff-ce518a6fda1a",
@@ -215,7 +215,7 @@ class CardStatus(Resource):
         return {
                     "Token": psp_token,
                     "Card status": status,
-                    "Current activations": activations,
+                    "VOP activations": activations,
                     "Log": log_str
                 }, 200
 
