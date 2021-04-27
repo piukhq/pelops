@@ -60,13 +60,13 @@ class Redis:
 
             expiry = 6000
 
-            success, message, err_code, err_message = self.update_status(psp_token, new_status, token, expiry)
+            success, log_message, err_code, err_message = self.update_status(psp_token, new_status, token, expiry)
 
             now = datetime.now()
-            logger.info(f'Card Persistence: {message}')
-            self.append_to_rlist(f'cardlog_{psp_token}', f'[{now}] {message}', expiry)
+            logger.info(f'Card Persistence: {log_message}')
+            self.append_to_rlist(f'cardlog_{psp_token}', f'[{now}] {log_message}', expiry)
 
-            return True, success, message, err_code, err_message
+            return True, success, log_message, err_code, err_message
         else:
             return False, False, '', {}, ''
 
@@ -74,7 +74,7 @@ class Redis:
         # Checks logic for retain/add/delete to persistence layer and applies/rejects requested change as necessary.
         # Also returns error codes and messages for later use, if request fails logic.
         success = False
-        message = 'Failed'
+        log_message = 'Failed'
         err = None
         err_code = ''
         err_message = ''
@@ -106,7 +106,7 @@ class Redis:
                 '': (True, True, f'Card {psp_token} retained.', None)
             }
 
-            change, success, message, err = actions[old_status]
+            change, success, log_message, err = actions[old_status]
             if change:
                 self.set_expire(f'card_{psp_token}', new_status, expiry)
 
@@ -120,7 +120,7 @@ class Redis:
                 '': (False, False, f'Card {psp_token} not yet retained.', {'amex': 'RCCMU009',
                                                                            'visa': 'RTMENRE0021'})
             }
-            change, success, message, err = actions[old_status]
+            change, success, log_message, err = actions[old_status]
             if change:
                 self.set_expire(f'card_{psp_token}', new_status, expiry)
 
@@ -134,11 +134,62 @@ class Redis:
                 '': (False, False, f'Card {psp_token} not yet added.', {'amex': 'RCCMU009',
                                                                         'visa': 'RTMENRE0026'})
             }
-            change, success, message, err = actions[old_status]
+            change, success, log_message, err = actions[old_status]
             if change:
                 self.set_expire(f'card_{psp_token}', new_status, expiry)
 
         if err:
             err_code = err[token]
             err_message = err_message_list[err_code]
-        return success, message, err_code, err_message
+        return success, log_message, err_code, err_message
+
+    def add_activation(self, psp_token, offer_id, activation_id):
+        # If using the PER_ prefix (see above), activation records will be persistently stored and request
+        # returned as successful, provided the associated psp_token has a status of 'ADDED' within Pelops'
+        # persistence layer.
+
+        now = datetime.now()
+        if psp_token[:4] == 'PER_':
+            try:
+                status = self.get(f'card_{psp_token}')
+            except self.NotFound:
+                return False
+            if status == 'ADDED':
+                self.append_to_rlist(f'card_activations_{psp_token}', activation_id)
+                self.append_to_rlist(f'cardlog_{psp_token}', f'[{now}] Activated card/scheme pair with VOP for scheme '
+                                                             f'{offer_id}. Activation id: {activation_id}')
+                logger.info(f'Card persistence: Activation {activation_id} created')
+            else:
+                self.append_to_rlist(f'cardlog_{psp_token}',
+                                     f'[{now}] Activation failed for: {activation_id}. No added card found')
+                logger.info(f'Card persistence: Activation {activation_id} failed. No added card found')
+                return False
+        return True
+
+    def remove_activation(self, psp_token, activation_id):
+        # If using the PER_ prefix (see above), deactivation records will be removed (as well as logged) and request
+        # will return as successful, provided the associated psp_token has a status of 'ADDED' within Pelops'
+        # persistence layer.
+
+        now = datetime.now()
+        if psp_token[:4] == 'PER_':
+            try:
+                status = self.get(f'card_{psp_token}')
+            except self.NotFound:
+                return False
+            if status == 'ADDED':
+
+                if self.store.lrem(f'card_activations_{psp_token}', -1, activation_id):
+                    # lrem returns number of removed items, 0 if none found/removed
+                    self.append_to_rlist(f'cardlog_{psp_token}', f'[{now}] Deactivated card/scheme pair. '
+                                                                 f'Activation id: {activation_id}')
+                    logger.info(f'Card persistence: Activation {activation_id} deactivated')
+                else:
+                    return False
+            else:
+                self.append_to_rlist(f'cardlog_{psp_token}', f'[{now}] Deactivation failed for activation_id '
+                                                             f'{activation_id}. No added card found.')
+                logger.info(f'Card persistence: Deactivation failed for activation_id {activation_id}. '
+                            f'No added card found')
+                return False
+        return True
