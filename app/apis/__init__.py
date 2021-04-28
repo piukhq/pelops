@@ -165,7 +165,7 @@ class VopUnenroll(Resource):
                 else:
                     if not code:
                         code = 500
-                    sp1.abort(code, f"Failed VOP Unenrol request for {unique_token}")
+                    sp1.abort(code, f"Failed VOP Unenroll request for {unique_token}")
 
             else:
                 per, success, log_message, err, err_message = storage.update_if_per(user_key, 'DELETED', 'visa')

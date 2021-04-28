@@ -9,7 +9,7 @@ class Redis:
 
     def __init__(self, url):
         self.store = StrictRedis.from_url(url)
-        self.expiry = 6000
+        self.expiry = 43200
 
     @staticmethod
     def _key(key):
