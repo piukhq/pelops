@@ -70,6 +70,8 @@ def get_amex_request_token(method, request_info):
 @spreedly_api.route('/receivers/<spreedly_agent_receiver_token>/deliver.xml')
 class Deliver(Resource):
     def post(self, spreedly_agent_receiver_token):
+        # spreedly_agent_receiver_token is sent to Pelops as 'amex', 'visa' or 'mastercard'. In prod this would be a
+        # more traditional token which Spreedly would use to connect with the correct agent.
         logger.info(f"request  /receivers/{spreedly_agent_receiver_token}/deliver.xml")
         if spreedly_agent_receiver_token in deliver_data:
             if spreedly_agent_receiver_token == 'amex':
