@@ -9,6 +9,7 @@ class Redis:
 
     def __init__(self, url):
         self.store = StrictRedis.from_url(url)
+        self.expiry = 43200
 
     @staticmethod
     def _key(key):
@@ -17,10 +18,14 @@ class Redis:
     def set(self, key, value):
         self.store.set(self._key(key), value)
 
-    def set_expire(self, key, value, expire=600):
+    def set_expire(self, key, value, expire=None):
+        if expire is None:
+            expire = self.expiry
         self.store.setex(self._key(key), expire, value)
 
-    def append_to_rlist(self, key, value, expire=600):
+    def append_to_rlist(self, key, value, expire=None):
+        if expire is None:
+            expire = self.expiry
         # Appends value to redis list and resets expiry
         self.store.rpush(key, value)
         self.store.expire(key, expire)
@@ -58,13 +63,11 @@ class Redis:
 
         if psp_token[:4] == 'PER_':
 
-            expiry = 6000
-
-            success, log_message, err_code, err_message = self.update_status(psp_token, new_status, token, expiry)
+            success, log_message, err_code, err_message = self.update_status(psp_token, new_status, token, self.expiry)
 
             now = datetime.now()
             logger.info(f'Card Persistence: {log_message}')
-            self.append_to_rlist(f'cardlog_{psp_token}', f'[{now}] {log_message}', expiry)
+            self.append_to_rlist(f'cardlog_{psp_token}', f'[{now}] {log_message}', self.expiry)
 
             return True, success, log_message, err_code, err_message
         else:
