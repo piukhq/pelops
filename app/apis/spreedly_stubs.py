@@ -87,8 +87,13 @@ class Deliver(Resource):
                     else:
                         if not code:
                             code = 404
-                        spreedly_api.abort(code, f'No deliver data in request for Amex simulated psp token '
-                                                 f'{unique_token}')
+
+                        message = f"No deliver data in request for Amex simulated psp token {unique_token}"
+                        errors = {"errors": [{"message": message}]}
+                        response = Response(json.dumps(errors), mimetype='application/json', status=code)
+
+                        return response
+
                 action = 'DELETED' if b'unsync_details' in request.data else 'ADDED'
                 per, success, message, err, err_message = storage.update_if_per(psp_token, action,
                                                                                 spreedly_agent_receiver_token)
