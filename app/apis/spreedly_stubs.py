@@ -60,7 +60,7 @@ def populate_xml_with_data(is_error, spreedly_agent_receiver_token, code, psp_to
 
     if err_message is None:
         err_message = 'Pelops-generated error'
-    replace_list = {'<<error>>': code,
+    replace_list = {'<<error>>': str(code),
                     '<<errormessage>>': err_message,
                     '<<TOKEN>>': psp_token}
 
