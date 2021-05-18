@@ -29,7 +29,6 @@ def check_and_send(per, err, success, spreedly_agent_receiver_token, psp_token, 
                                                    err_message=err_message,
                                                    is_error=is_error,)
 
-        logger.info("Response Data to Metis: " + resp_data)
         return Response(resp_data, mimetype="text/xml")
 
     elif spreedly_agent_receiver_token == 'visa':
@@ -59,7 +58,6 @@ def spreedly_token_response(transaction_token, has_succeeded):
 @spreedly_api.route('/receivers/<spreedly_agent_receiver_token>/deliver.xml')
 class Deliver(Resource):
     def post(self, spreedly_agent_receiver_token):
-
         # spreedly_agent_receiver_token is sent to Pelops as 'amex', 'visa' or 'mastercard'. In prod this would be a
         # more traditional token which Spreedly would use to connect with the correct agent.
         logger.info(f"request  /receivers/{spreedly_agent_receiver_token}/deliver.xml")
@@ -79,7 +77,6 @@ class Deliver(Resource):
                                                                 err_code,
                                                                 psp_token,
                                                                 is_error=True)
-                        print(resp_data)
                         return Response(resp_data, mimetype="text/xml")
                     else:
                         if not err_code:
@@ -88,7 +85,6 @@ class Deliver(Resource):
                         message = f"Pelops-generated error for psp_token: " \
                                   f"{unique_token}"
                         errors = {"errors": [{"message": message}]}
-                        print(json.dumps(errors))
                         return Response(json.dumps(errors), mimetype='application/json', status=err_code)
 
                 # Checks for PER prefix and if found updates persistence layer
@@ -103,6 +99,7 @@ class Deliver(Resource):
 
     @staticmethod
     def get_xml_action_code(request_data, spreedly_agent_receiver_token):
+        # Searches for string and determines if request is for enrolment or unenrolment
         if spreedly_agent_receiver_token == 'mastercard':
             search_pattern = '<cus:ACCOUNT_STATUS_ID>3'
         else:
@@ -114,6 +111,7 @@ class Deliver(Resource):
 
     @staticmethod
     def get_xml_request_token(method, request_info, data):
+        # Extracts psp_token from XML request
         result = re.search("<payment_method_token>(.*)</payment_method_token>", data)
         psp_token = result.group(1)
         logger.info(f"{method} psp_token: {psp_token} request {request_info}")
@@ -122,6 +120,7 @@ class Deliver(Resource):
 
     @staticmethod
     def populate_xml_with_data(spreedly_agent_receiver_token, code, psp_token, err_message=None, is_error=False):
+        # Replaces placeholders in responses with accurate token and error information.
         if err_message is None:
             err_message = 'Pelops-generated error'
         replace_list = {'<<error>>': str(code),
@@ -143,18 +142,18 @@ class DeliverJson(Resource):
     def post(self, spreedly_agent_receiver_token):
         if spreedly_agent_receiver_token == 'visa':
             psp_token = self.get_json_request_token('POST', f'/receivers/{spreedly_agent_receiver_token}/deliver.json')
-            active, error_type, code, unique_token = check_token('ADD', psp_token)
+            active, error_type, err_code, unique_token = check_token('ADD', psp_token)
             if active:
                 if error_type:
                     resp_data = deliver_data['visa_error']
                     resp_data["transaction"]["response"]["body"] = \
-                        resp_data["transaction"]["response"]["body"].replace('<<error>>', code)
+                        resp_data["transaction"]["response"]["body"].replace('<<error>>', err_code)
                     resp_data["transaction"]["payment_method"]["token"] = psp_token
                     return Response(json.dumps(resp_data), mimetype='application/json')
                 else:
-                    if not code:
-                        code = 404
-                    spreedly_api.abort(code, f'Pelops-generated error for psp_token: {unique_token}')
+                    if not err_code:
+                        err_code = 404
+                    spreedly_api.abort(err_code, f'Pelops-generated error for psp_token: {unique_token}')
             else:
                 per, success, message, err, err_message = storage.update_if_per(psp_token, 'ADD',
                                                                                 spreedly_agent_receiver_token)
@@ -165,6 +164,7 @@ class DeliverJson(Resource):
 
     @staticmethod
     def get_json_request_token(method, request_info):
+        # Extracts psp_token from JSON request
         data = request.get_json()
         delivery = data.get('delivery', {})
         psp_token = delivery.get('payment_method_token', "")
