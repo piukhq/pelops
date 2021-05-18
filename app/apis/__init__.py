@@ -86,7 +86,7 @@ class VopActivate(Resource):
 
             else:
                 code = "RTMOACTVE03"
-                message = "Validation failed - Invalid User."
+                message = "Validation failed - Invalid user or activation_id."
                 http_response = 200
 
         return {

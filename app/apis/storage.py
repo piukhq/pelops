@@ -168,7 +168,7 @@ class Redis:
                 status = self.get(f'card_{psp_token}')
             except self.NotFound:
                 return False
-            if status == 'ADDED':
+            if status == 'ADD':
                 self.append_to_rlist(f'card_activations_{psp_token}', activation_id)
                 self.append_to_rlist(f'cardlog_{psp_token}', f'[{now}] Activated card/scheme pair with VOP for scheme '
                                                              f'{offer_id}. Activation id: {activation_id}')
@@ -191,7 +191,7 @@ class Redis:
                 status = self.get(f'card_{psp_token}')
             except self.NotFound:
                 return False
-            if status == 'ADDED':
+            if status == 'ADD':
 
                 if self.store.lrem(f'card_activations_{psp_token}', -1, activation_id):
                     # lrem returns number of removed items, 0 if none found/removed
