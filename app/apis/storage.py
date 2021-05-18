@@ -69,10 +69,6 @@ class Redis:
             logger.info(f'Card Persistence: {log_message}')
             self.append_to_rlist(f'cardlog_{psp_token}', f'[{now}] {log_message}', self.expiry)
 
-            per_data = \
-                {
-
-                }
             return True, success, log_message, err_code, err_message
         else:
             return False, False, '', '', ''
