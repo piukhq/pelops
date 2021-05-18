@@ -93,6 +93,8 @@ class Redis:
             'RTMENRE0021': 'Invalid user status or user already enrolled',
             'RTMENRE0050': 'Invalid user status',
             'RTMENRE0026': 'Enroll User not found',
+            '5': 'Invalid account/no account found',
+            '6': 'Account already exists',
             'ERROR': 'Generic Pelops-generated error'
         }
 
@@ -123,12 +125,12 @@ class Redis:
                 added: (False, False, f'Card {psp_token} cannot be added - card already exists.',
                         {'amex': 'RCCMP005',
                          'visa': 'RTMENRE0025',
-                         'mastercard': 'ERROR'}),
+                         'mastercard': '6'}),
                 retained: (True, True, f'Card {psp_token} added successfully.', None),
                 deleted: (True, True, f'Card {psp_token} re-added.', None),
                 '': (False, False, f'Card {psp_token} not yet retained.', {'amex': 'RCCMU009',
                                                                            'visa': 'RTMENRE0021',
-                                                                           'mastercard': 'ERROR'})
+                                                                           'mastercard': '5'})
             }
             change, success, log_message, err = actions[old_status]
             if change:
@@ -138,14 +140,14 @@ class Redis:
             actions = {
                 added: (True, True, f'Card {psp_token} deleted successfully.', None),
                 retained: (False, False, f'Card {psp_token} not yet added.', {'amex': 'RCCMU009',
-                                                                              'visa': 'RTMENRE0050',
-                                                                              'mastercard': 'ERROR'}),
+                                                                              'visa': 'RTMENRE0026',
+                                                                              'mastercard': '5'}),
                 deleted: (False, False, f'Card {psp_token} already deleted.', {'amex': 'RCCMU009',
                                                                                'visa': 'RTMENRE0026',
-                                                                               'mastercard': 'ERROR'}),
+                                                                               'mastercard': '5'}),
                 '': (False, False, f'Card {psp_token} not yet added.', {'amex': 'RCCMU009',
                                                                         'visa': 'RTMENRE0026',
-                                                                        'mastercard': 'ERROR'})
+                                                                        'mastercard': '5'})
             }
             change, success, log_message, err = actions[old_status]
             if change:
