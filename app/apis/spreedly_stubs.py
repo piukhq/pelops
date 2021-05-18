@@ -156,7 +156,7 @@ class DeliverJson(Resource):
                         code = 404
                     spreedly_api.abort(code, f'Pelops-generated error for psp_token: {unique_token}')
             else:
-                per, success, message, err, err_message = storage.update_if_per(psp_token, 'ADDED',
+                per, success, message, err, err_message = storage.update_if_per(psp_token, 'ADD',
                                                                                 spreedly_agent_receiver_token)
                 return check_and_send(per, err, success, spreedly_agent_receiver_token, psp_token, err_message)
         else:
