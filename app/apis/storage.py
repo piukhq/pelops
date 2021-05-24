@@ -71,7 +71,7 @@ class Redis:
 
             return True, success, log_message, err_code, err_message
         else:
-            return False, False, '', {}, ''
+            return False, False, '', '', ''
 
     def update_status(self, psp_token, new_status, token, expiry):
         # Checks logic for retain/add/delete to persistence layer and applies/rejects requested change as necessary.
@@ -89,11 +89,14 @@ class Redis:
             'RTMENRE0021': 'Invalid user status or user already enrolled',
             'RTMENRE0050': 'Invalid user status',
             'RTMENRE0026': 'Enroll User not found',
+            '5': 'Invalid account/no account found',
+            '6': 'Account already exists',
+            'ERROR': 'Generic Pelops-generated error'
         }
 
-        retained = 'RETAINED'
-        added = 'ADDED'
-        deleted = 'DELETED'
+        retained = 'RET'
+        added = 'ADD'
+        deleted = 'DEL'
 
         try:
             old_status = self.get(f'card_{psp_token}')
@@ -117,11 +120,13 @@ class Redis:
             actions = {
                 added: (False, False, f'Card {psp_token} cannot be added - card already exists.',
                         {'amex': 'RCCMP005',
-                         'visa': 'RTMENRE0025'}),
+                         'visa': 'RTMENRE0025',
+                         'mastercard': '6'}),
                 retained: (True, True, f'Card {psp_token} added successfully.', None),
                 deleted: (True, True, f'Card {psp_token} re-added.', None),
                 '': (False, False, f'Card {psp_token} not yet retained.', {'amex': 'RCCMU009',
-                                                                           'visa': 'RTMENRE0021'})
+                                                                           'visa': 'RTMENRE0021',
+                                                                           'mastercard': '5'})
             }
             change, success, log_message, err = actions[old_status]
             if change:
@@ -131,11 +136,14 @@ class Redis:
             actions = {
                 added: (True, True, f'Card {psp_token} deleted successfully.', None),
                 retained: (False, False, f'Card {psp_token} not yet added.', {'amex': 'RCCMU009',
-                                                                              'visa': 'RTMENRE0050'}),
+                                                                              'visa': 'RTMENRE0026',
+                                                                              'mastercard': '5'}),
                 deleted: (False, False, f'Card {psp_token} already deleted.', {'amex': 'RCCMU009',
-                                                                               'visa': 'RTMENRE0026'}),
+                                                                               'visa': 'RTMENRE0026',
+                                                                               'mastercard': '5'}),
                 '': (False, False, f'Card {psp_token} not yet added.', {'amex': 'RCCMU009',
-                                                                        'visa': 'RTMENRE0026'})
+                                                                        'visa': 'RTMENRE0026',
+                                                                        'mastercard': '5'})
             }
             change, success, log_message, err = actions[old_status]
             if change:
@@ -144,6 +152,7 @@ class Redis:
         if err:
             err_code = err[token]
             err_message = err_message_list[err_code]
+
         return success, log_message, err_code, err_message
 
     def add_activation(self, psp_token, offer_id, activation_id):
@@ -157,7 +166,7 @@ class Redis:
                 status = self.get(f'card_{psp_token}')
             except self.NotFound:
                 return False
-            if status == 'ADDED':
+            if status == 'ADD':
                 self.append_to_rlist(f'card_activations_{psp_token}', activation_id)
                 self.append_to_rlist(f'cardlog_{psp_token}', f'[{now}] Activated card/scheme pair with VOP for scheme '
                                                              f'{offer_id}. Activation id: {activation_id}')
@@ -180,7 +189,7 @@ class Redis:
                 status = self.get(f'card_{psp_token}')
             except self.NotFound:
                 return False
-            if status == 'ADDED':
+            if status == 'ADD':
 
                 if self.store.lrem(f'card_activations_{psp_token}', -1, activation_id):
                     # lrem returns number of removed items, 0 if none found/removed

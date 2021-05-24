@@ -86,7 +86,7 @@ class VopActivate(Resource):
 
             else:
                 code = "RTMOACTVE03"
-                message = "Validation failed - Invalid User."
+                message = "Validation failed - Invalid user or activation_id."
                 http_response = 200
 
         return {
@@ -168,7 +168,7 @@ class VopUnenroll(Resource):
                     sp1.abort(code, f"Failed VOP Unenroll request for {unique_token}")
 
             else:
-                per, success, log_message, err, err_message = storage.update_if_per(user_key, 'DELETED', 'visa')
+                per, success, log_message, err, err_message = storage.update_if_per(user_key, 'DEL', 'visa')
                 if per and not success:
                     message = err_message
                     http_response = 200
