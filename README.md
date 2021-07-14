@@ -16,3 +16,5 @@
 - `PELOPS_DEBUG`
   - `True` = Set Pelops Application to debug mode
   - `False` = Set Pelops Application to normal mode (Default)
+- `LINKERD_AWAIT_DISABLED`
+  - `1` = Set the Pelops container to not wait for the linkerd proxy to be ready
