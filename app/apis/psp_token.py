@@ -2,6 +2,7 @@ import json
 import time
 
 from settings import REDIS_URL
+
 from .storage import Redis
 
 storage = Redis(url=REDIS_URL)
@@ -24,11 +25,11 @@ def split_psp_token(psp_token: str) -> tuple:
     unique_token = psp_token
     items = [""]
     if token_type == 0:
-        items = psp_token[3:].split('_', 1)
+        items = psp_token[3:].split("_", 1)
         error_code = items[1]
         pay_error = 1
     elif token_type == 1:
-        items = psp_token[3:].split('_', 6)
+        items = psp_token[3:].split("_", 6)
         error_code = items[1]
         if error_code.isdigit():
             error_code = int(error_code)
@@ -115,16 +116,16 @@ def check_token(action_code: str, psp_token: str) -> tuple:
 
     try:
         last_try = json.loads(storage.get(key))
-        if last_try.get('code') != action_code:
+        if last_try.get("code") != action_code:
             raise storage.NotFound
     except (json.JSONDecodeError, storage.NotFound):
-        last_try = {'code': action_code, 'repeats': error_times}
+        last_try = {"code": action_code, "repeats": error_times}
         storage.set_expire(key, json.dumps(last_try))
 
-    if last_try.get('repeats') > 0:
+    if last_try.get("repeats") > 0:
         if error_delay:
             time.sleep(error_delay)
-        last_try['repeats'] -= 1
+        last_try["repeats"] -= 1
         storage.set_expire(key, json.dumps(last_try))
         if pay_error == 0 and 200 <= error_code <= 299:
             return False, pay_error, error_code, unique_token
