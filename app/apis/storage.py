@@ -1,6 +1,8 @@
-from redis import StrictRedis
-from settings import logger
 from datetime import datetime
+
+from redis import StrictRedis
+
+from settings import logger
 
 
 class Redis:
@@ -61,93 +63,107 @@ class Redis:
         The status of cards added/deleted etc. without the PER prefix will not be stored/updated.
         """
 
-        if psp_token[:4] == 'PER_':
+        if psp_token[:4] == "PER_":
 
             success, log_message, err_code, err_message = self.update_status(psp_token, new_status, token, self.expiry)
 
             now = datetime.now()
-            logger.info(f'Card Persistence: {log_message}')
-            self.append_to_rlist(f'cardlog_{psp_token}', f'[{now}] {log_message}', self.expiry)
+            logger.info(f"Card Persistence: {log_message}")
+            self.append_to_rlist(f"cardlog_{psp_token}", f"[{now}] {log_message}", self.expiry)
 
             return True, success, log_message, err_code, err_message
         else:
-            return False, False, '', '', ''
+            return False, False, "", "", ""
 
     def update_status(self, psp_token, new_status, token, expiry):
         # Checks logic for retain/add/delete to persistence layer and applies/rejects requested change as necessary.
         # Also returns error codes and messages for later use, if request fails logic.
         success = False
-        log_message = 'Failed'
+        log_message = "Failed"
         err = None
-        err_code = ''
-        err_message = ''
+        err_code = ""
+        err_message = ""
 
         err_message_list = {
-            'RCCMP005': 'Card Member already Synced for the Token - Duplicate request or malfunction in input request.',
-            'RCCMU009': 'Invalid Token/Token not found.',
-            'RTMENRE0025': 'The user key provided is already in use - duplicate card.',
-            'RTMENRE0021': 'Invalid user status or user already enrolled',
-            'RTMENRE0050': 'Invalid user status',
-            'RTMENRE0026': 'Enroll User not found',
-            '5': 'Invalid account/no account found',
-            '6': 'Account already exists',
-            'ERROR': 'Generic Pelops-generated error'
+            "RCCMP005": "Card Member already Synced for the Token - Duplicate request or malfunction in input request.",
+            "RCCMU009": "Invalid Token/Token not found.",
+            "RTMENRE0025": "The user key provided is already in use - duplicate card.",
+            "RTMENRE0021": "Invalid user status or user already enrolled",
+            "RTMENRE0050": "Invalid user status",
+            "RTMENRE0026": "Enroll User not found",
+            "5": "Invalid account/no account found",
+            "6": "Account already exists",
+            "ERROR": "Generic Pelops-generated error",
         }
 
-        retained = 'RET'
-        added = 'ADD'
-        deleted = 'DEL'
+        retained = "RET"
+        added = "ADD"
+        deleted = "DEL"
 
         try:
-            old_status = self.get(f'card_{psp_token}')
+            old_status = self.get(f"card_{psp_token}")
         except self.NotFound:
-            self.set_expire(f'card_{psp_token}', '', expiry)
-            old_status = ''
+            self.set_expire(f"card_{psp_token}", "", expiry)
+            old_status = ""
 
         if new_status == retained:
             actions = {
-                added: (False, True, f'Card {psp_token} re-retained (Currently ADDED).', None),
-                retained: (False, True, f'Card {psp_token} re-retained (Currently RETAINED).', None),
-                deleted: (False, True, f'Card {psp_token} re-retained (Currently DELETED).', None),
-                '': (True, True, f'Card {psp_token} retained.', None)
+                added: (False, True, f"Card {psp_token} re-retained (Currently ADDED).", None),
+                retained: (False, True, f"Card {psp_token} re-retained (Currently RETAINED).", None),
+                deleted: (False, True, f"Card {psp_token} re-retained (Currently DELETED).", None),
+                "": (True, True, f"Card {psp_token} retained.", None),
             }
 
             change, success, log_message, err = actions[old_status]
             if change:
-                self.set_expire(f'card_{psp_token}', new_status, expiry)
+                self.set_expire(f"card_{psp_token}", new_status, expiry)
 
         elif new_status == added:
             actions = {
-                added: (False, False, f'Card {psp_token} cannot be added - card already exists.',
-                        {'amex': 'RCCMP005',
-                         'visa': 'RTMENRE0025',
-                         'mastercard': '6'}),
-                retained: (True, True, f'Card {psp_token} added successfully.', None),
-                deleted: (True, True, f'Card {psp_token} re-added.', None),
-                '': (False, False, f'Card {psp_token} not yet retained.', {'amex': 'RCCMU009',
-                                                                           'visa': 'RTMENRE0021',
-                                                                           'mastercard': '5'})
+                added: (
+                    False,
+                    False,
+                    f"Card {psp_token} cannot be added - card already exists.",
+                    {"amex": "RCCMP005", "visa": "RTMENRE0025", "mastercard": "6"},
+                ),
+                retained: (True, True, f"Card {psp_token} added successfully.", None),
+                deleted: (True, True, f"Card {psp_token} re-added.", None),
+                "": (
+                    False,
+                    False,
+                    f"Card {psp_token} not yet retained.",
+                    {"amex": "RCCMU009", "visa": "RTMENRE0021", "mastercard": "5"},
+                ),
             }
             change, success, log_message, err = actions[old_status]
             if change:
-                self.set_expire(f'card_{psp_token}', new_status, expiry)
+                self.set_expire(f"card_{psp_token}", new_status, expiry)
 
         elif new_status == deleted:
             actions = {
-                added: (True, True, f'Card {psp_token} deleted successfully.', None),
-                retained: (False, False, f'Card {psp_token} not yet added.', {'amex': 'RCCMU009',
-                                                                              'visa': 'RTMENRE0026',
-                                                                              'mastercard': '5'}),
-                deleted: (False, False, f'Card {psp_token} already deleted.', {'amex': 'RCCMU009',
-                                                                               'visa': 'RTMENRE0026',
-                                                                               'mastercard': '5'}),
-                '': (False, False, f'Card {psp_token} not yet added.', {'amex': 'RCCMU009',
-                                                                        'visa': 'RTMENRE0026',
-                                                                        'mastercard': '5'})
+                added: (True, True, f"Card {psp_token} deleted successfully.", None),
+                retained: (
+                    False,
+                    False,
+                    f"Card {psp_token} not yet added.",
+                    {"amex": "RCCMU009", "visa": "RTMENRE0026", "mastercard": "5"},
+                ),
+                deleted: (
+                    False,
+                    False,
+                    f"Card {psp_token} already deleted.",
+                    {"amex": "RCCMU009", "visa": "RTMENRE0026", "mastercard": "5"},
+                ),
+                "": (
+                    False,
+                    False,
+                    f"Card {psp_token} not yet added.",
+                    {"amex": "RCCMU009", "visa": "RTMENRE0026", "mastercard": "5"},
+                ),
             }
             change, success, log_message, err = actions[old_status]
             if change:
-                self.set_expire(f'card_{psp_token}', new_status, expiry)
+                self.set_expire(f"card_{psp_token}", new_status, expiry)
 
         if err:
             err_code = err[token]
@@ -161,20 +177,24 @@ class Redis:
         # persistence layer.
 
         now = datetime.now()
-        if psp_token[:4] == 'PER_':
+        if psp_token[:4] == "PER_":
             try:
-                status = self.get(f'card_{psp_token}')
+                status = self.get(f"card_{psp_token}")
             except self.NotFound:
                 return False
-            if status == 'ADD':
-                self.append_to_rlist(f'card_activations_{psp_token}', activation_id)
-                self.append_to_rlist(f'cardlog_{psp_token}', f'[{now}] Activated card/scheme pair with VOP for scheme '
-                                                             f'{offer_id}. Activation id: {activation_id}')
-                logger.info(f'Card persistence: Activation {activation_id} created')
+            if status == "ADD":
+                self.append_to_rlist(f"card_activations_{psp_token}", activation_id)
+                self.append_to_rlist(
+                    f"cardlog_{psp_token}",
+                    f"[{now}] Activated card/scheme pair with VOP for scheme "
+                    f"{offer_id}. Activation id: {activation_id}",
+                )
+                logger.info(f"Card persistence: Activation {activation_id} created")
             else:
-                self.append_to_rlist(f'cardlog_{psp_token}',
-                                     f'[{now}] Activation failed for: {activation_id}. No added card found')
-                logger.info(f'Card persistence: Activation {activation_id} failed. No added card found')
+                self.append_to_rlist(
+                    f"cardlog_{psp_token}", f"[{now}] Activation failed for: {activation_id}. No added card found"
+                )
+                logger.info(f"Card persistence: Activation {activation_id} failed. No added card found")
                 return False
         return True
 
@@ -184,24 +204,29 @@ class Redis:
         # persistence layer.
 
         now = datetime.now()
-        if psp_token[:4] == 'PER_':
+        if psp_token[:4] == "PER_":
             try:
-                status = self.get(f'card_{psp_token}')
+                status = self.get(f"card_{psp_token}")
             except self.NotFound:
                 return False
-            if status == 'ADD':
+            if status == "ADD":
 
-                if self.store.lrem(f'card_activations_{psp_token}', -1, activation_id):
+                if self.store.lrem(f"card_activations_{psp_token}", -1, activation_id):
                     # lrem returns number of removed items, 0 if none found/removed
-                    self.append_to_rlist(f'cardlog_{psp_token}', f'[{now}] Deactivated card/scheme pair. '
-                                                                 f'Activation id: {activation_id}')
-                    logger.info(f'Card persistence: Activation {activation_id} deactivated')
+                    self.append_to_rlist(
+                        f"cardlog_{psp_token}",
+                        f"[{now}] Deactivated card/scheme pair. " f"Activation id: {activation_id}",
+                    )
+                    logger.info(f"Card persistence: Activation {activation_id} deactivated")
                 else:
                     return False
             else:
-                self.append_to_rlist(f'cardlog_{psp_token}', f'[{now}] Deactivation failed for activation_id '
-                                                             f'{activation_id}. No added card found.')
-                logger.info(f'Card persistence: Deactivation failed for activation_id {activation_id}. '
-                            f'No added card found')
+                self.append_to_rlist(
+                    f"cardlog_{psp_token}",
+                    f"[{now}] Deactivation failed for activation_id " f"{activation_id}. No added card found.",
+                )
+                logger.info(
+                    f"Card persistence: Deactivation failed for activation_id {activation_id}. " f"No added card found"
+                )
                 return False
         return True
