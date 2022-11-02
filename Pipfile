@@ -4,20 +4,19 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [requires]
-python_version = "3.9"
+python_version = "3.11"
 
 [dev-packages]
-black = "==21.10b0"
 flake8 = "*"
 isort = "*"
 xenon = "*"
+black = "*"
 
 [packages]
 gunicorn = "*"
-flask-restplus = "*"
-Flask = "<2.0"
-Flask-RESTful = "*"
-Flask-Script = "*"
 redis = "*"
-werkzeug = "==0.16.1"
 flask-httpauth = "*"
+flask = "*"
+flask-restful = "*"
+flask-script = "*"
+flask-restx = "*"

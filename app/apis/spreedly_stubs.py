@@ -3,7 +3,7 @@ import re
 from uuid import uuid4
 
 from flask import Response, jsonify, request
-from flask_restplus import Namespace, Resource
+from flask_restx import Namespace, Resource
 
 from app.apis.storage import Redis
 from app.fixtures.spreedly import deliver_data, export_data

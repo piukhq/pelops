@@ -4,7 +4,7 @@ from datetime import datetime
 import redis
 from flask import request
 from flask_httpauth import HTTPBasicAuth
-from flask_restplus import Api, Resource
+from flask_restx import Api, Resource
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.apis.spreedly_stubs import spreedly_api as sp1
