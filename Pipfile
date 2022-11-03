@@ -3,15 +3,19 @@ name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
 
+[requires]
+python_version = "3.9"
+
 [dev-packages]
-gunicorn = "*"
-black = "==20.8b1"
+black = "==21.10b0"
 flake8 = "*"
 isort = "*"
+xenon = "*"
 
 [packages]
+gunicorn = "*"
 flask-restplus = "*"
-Flask = "*"
+Flask = "<2.0"
 Flask-RESTful = "*"
 Flask-Script = "*"
 redis = "*"
