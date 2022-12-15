@@ -11,6 +11,7 @@ flake8 = "*"
 isort = "*"
 xenon = "*"
 black = "*"
+python-dotenv = "*"
 
 [packages]
 gunicorn = "*"
@@ -18,5 +19,4 @@ redis = "*"
 flask-httpauth = "*"
 flask = "*"
 flask-restful = "*"
-flask-script = "*"
 flask-restx = "*"
