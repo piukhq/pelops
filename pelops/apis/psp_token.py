@@ -1,18 +1,17 @@
 import json
 import time
 
-from settings import REDIS_URL
+from pelops.apis.storage import Redis
+from pelops.settings import settings
 
-from .storage import Redis
-
-storage = Redis(url=REDIS_URL)
+storage = Redis(url=settings.REDIS_URL)
 
 
 def split_psp_token(psp_token: str) -> tuple:
     token_type = None
     pay_error = None
     error_times = 0
-    error_code = False
+    error_code: int | bool | str = False
     error_delay = 0
 
     if len(psp_token) > 7:

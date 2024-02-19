@@ -1,4 +1,39 @@
-deliver_data = {
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing_extensions import TypedDict
+
+    class VisaTransactionResponseType(TypedDict, total=False):
+        status: int
+        headers: str
+        body: str
+
+    class VisaTransactionType(TypedDict, total=False):
+        token: str
+        transaction_type: str
+        state: str
+        created_at: str
+        updated_at: str
+        succeeded: bool
+        message: str
+        url: str
+        response: VisaTransactionResponseType
+        receiver: dict
+        payment_method: dict
+
+    class VisaType(TypedDict):
+        transaction: VisaTransactionType
+
+    class DeliverDataType(TypedDict):
+        mastercard: str
+        mastercard_error: str
+        amex: str
+        amex_error: str
+        visa: VisaType
+        visa_error: VisaType
+
+
+deliver_data: "DeliverDataType" = {
     "mastercard": "<transaction>"
     "<token>bink_mastercard_token_1</token>"
     "<state>succeeded</state>"
