@@ -1,0 +1,5 @@
+from bink_logging_utils.gunicorn import gunicorn_logger_factory
+from bink_logging_utils.handlers import loguru_intercept_handler_factory
+
+InterceptHandler = loguru_intercept_handler_factory()
+CustomGunicornLogger = gunicorn_logger_factory(intercept_handler_class=InterceptHandler)

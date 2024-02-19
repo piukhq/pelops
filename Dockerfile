@@ -1,10 +1,12 @@
-FROM ghcr.io/binkhq/python:3.11-pipenv
-
+FROM ghcr.io/binkhq/python:3.12
+ARG PIP_INDEX_URL
+ARG APP_NAME
+ARG APP_VERSION
 WORKDIR /app
-ADD . .
-
-RUN pipenv install --system --deploy --ignore-pipfile
+RUN pip install --no-cache ${APP_NAME}==$(echo ${APP_VERSION} | cut -c 2-)
+ADD wsgi.py .
 
 ENTRYPOINT [ "linkerd-await", "--" ]
 CMD [ "gunicorn", "--error-logfile=-", "--access-logfile=-", \
-      "--bind=0.0.0.0:9000", "wsgi:app" ]
+    "--logger-class=pelops.reporting.CustomGunicornLogger", \
+    "--bind=0.0.0.0:9000", "wsgi:app" ]

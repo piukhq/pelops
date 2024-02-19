@@ -1,54 +1,74 @@
 from datetime import datetime
+from typing import TYPE_CHECKING, Literal, cast
 
+from loguru import logger
 from redis import StrictRedis
 
-from settings import logger
+from pelops.settings import settings
+
+if TYPE_CHECKING:
+    from typing_extensions import TypedDict
+
+    action_type = tuple[bool, bool, str, dict[str, str] | None]
+    ActionsType = TypedDict(
+        "ActionsType",
+        {
+            "ADD": action_type,
+            "RET": action_type,
+            "DEL": action_type,
+            "": action_type,
+        },
+        total=False,
+    )
+
+RETAINED = "RET"
+ADDED = "ADD"
+DELETED = "DEL"
 
 
 class Redis:
     class NotFound(Exception):
         pass
 
-    def __init__(self, url):
-        self.store = StrictRedis.from_url(url)
+    def __init__(self, url: str) -> None:
+        self.store = cast(StrictRedis, StrictRedis.from_url(url))
         self.expiry = 43200
 
     @staticmethod
-    def _key(key):
-        return "pelops-{}".format(key)
+    def _key(key: str) -> str:
+        return f"pelops-{key}"
 
-    def set(self, key, value):
+    def set(self, key: str, value: str) -> None:
         self.store.set(self._key(key), value)
 
-    def set_expire(self, key, value, expire=None):
+    def set_expire(self, key: str, value: str, expire: int | None = None) -> None:
         if expire is None:
             expire = self.expiry
         self.store.setex(self._key(key), expire, value)
 
-    def append_to_rlist(self, key, value, expire=None):
+    def append_to_rlist(self, key: str, value: str, expire: int | None = None) -> None:
         if expire is None:
             expire = self.expiry
         # Appends value to redis list and resets expiry
         self.store.rpush(key, value)
         self.store.expire(key, expire)
 
-    def get(self, key):
-        val = self.store.get(self._key(key))
+    def get(self, key: str) -> Literal["ADD", "RET", "DEL", ""]:
+        val = cast(bytes, self.store.get(self._key(key)))
         if not val:
             raise self.NotFound
-        return val.decode()
+        return cast(Literal["ADD", "RET", "DEL", ""], val.decode())
 
-    def delete(self, key):
+    def delete(self, key: str) -> None:
         self.store.delete(self._key(key))
 
-    def rlist_to_list(self, key):
+    def rlist_to_list(self, key: str) -> list[str]:
         # Reads redis list and decodes elements to string
-        list_bytes = self.store.lrange(key, 0, -1)
-        list_decoded = [x.decode("utf-8") for x in list_bytes]
+        list_bytes = cast(list[bytes], self.store.lrange(key, 0, -1))
+        list_decoded: list[str] = [x.decode("utf-8") for x in list_bytes]
         return list_decoded
 
-    def update_if_per(self, psp_token, new_status, token):
-
+    def update_if_per(self, psp_token: str, new_status: str, token: str) -> tuple[bool, bool, str, str, str]:
         """
         For Persistence (PER):
 
@@ -64,18 +84,17 @@ class Redis:
         """
 
         if psp_token[:4] == "PER_":
-
             success, log_message, err_code, err_message = self.update_status(psp_token, new_status, token, self.expiry)
 
-            now = datetime.now()
-            logger.info(f"Card Persistence: {log_message}")
+            now = datetime.now(tz=settings.TZINFO)
+            logger.info("Card Persistence: {}", log_message)
             self.append_to_rlist(f"cardlog_{psp_token}", f"[{now}] {log_message}", self.expiry)
 
             return True, success, log_message, err_code, err_message
-        else:
-            return False, False, "", "", ""
 
-    def update_status(self, psp_token, new_status, token, expiry):
+        return False, False, "", "", ""
+
+    def update_status(self, psp_token: str, new_status: str, token: str, expiry: int) -> tuple[bool, str, str, str]:
         # Checks logic for retain/add/delete to persistence layer and applies/rejects requested change as necessary.
         # Also returns error codes and messages for later use, if request fails logic.
         success = False
@@ -96,38 +115,34 @@ class Redis:
             "ERROR": "Generic Pelops-generated error",
         }
 
-        retained = "RET"
-        added = "ADD"
-        deleted = "DEL"
-
         try:
             old_status = self.get(f"card_{psp_token}")
         except self.NotFound:
             self.set_expire(f"card_{psp_token}", "", expiry)
             old_status = ""
 
-        if new_status == retained:
-            actions = {
-                added: (False, True, f"Card {psp_token} re-retained (Currently ADDED).", None),
-                retained: (False, True, f"Card {psp_token} re-retained (Currently RETAINED).", None),
-                deleted: (False, True, f"Card {psp_token} re-retained (Currently DELETED).", None),
+        if new_status == RETAINED:
+            actions_ret: "ActionsType" = {
+                "ADD": (False, True, f"Card {psp_token} re-retained (Currently ADDED).", None),
+                "RET": (False, True, f"Card {psp_token} re-retained (Currently RETAINED).", None),
+                "DEL": (False, True, f"Card {psp_token} re-retained (Currently DELETED).", None),
                 "": (True, True, f"Card {psp_token} retained.", None),
             }
 
-            change, success, log_message, err = actions[old_status]
+            change, success, log_message, err = actions_ret[old_status]
             if change:
                 self.set_expire(f"card_{psp_token}", new_status, expiry)
 
-        elif new_status == added:
-            actions = {
-                added: (
+        elif new_status == ADDED:
+            actions_add: "ActionsType" = {
+                "ADD": (
                     False,
                     False,
                     f"Card {psp_token} cannot be added - card already exists.",
                     {"amex": "RCCMP005", "visa": "RTMENRE0025", "mastercard": "6"},
                 ),
-                retained: (True, True, f"Card {psp_token} added successfully.", None),
-                deleted: (True, True, f"Card {psp_token} re-added.", None),
+                "RET": (True, True, f"Card {psp_token} added successfully.", None),
+                "DEL": (True, True, f"Card {psp_token} re-added.", None),
                 "": (
                     False,
                     False,
@@ -135,20 +150,20 @@ class Redis:
                     {"amex": "RCCMU009", "visa": "RTMENRE0021", "mastercard": "5"},
                 ),
             }
-            change, success, log_message, err = actions[old_status]
+            change, success, log_message, err = actions_add[old_status]
             if change:
                 self.set_expire(f"card_{psp_token}", new_status, expiry)
 
-        elif new_status == deleted:
-            actions = {
-                added: (True, True, f"Card {psp_token} deleted successfully.", None),
-                retained: (
+        elif new_status == DELETED:
+            actions_del: "ActionsType" = {
+                "ADD": (True, True, f"Card {psp_token} deleted successfully.", None),
+                "RET": (
                     False,
                     False,
                     f"Card {psp_token} not yet added.",
                     {"amex": "RCCMU009", "visa": "RTMENRE0026", "mastercard": "5"},
                 ),
-                deleted: (
+                "DEL": (
                     False,
                     False,
                     f"Card {psp_token} already deleted.",
@@ -161,7 +176,7 @@ class Redis:
                     {"amex": "RCCMU009", "visa": "RTMENRE0026", "mastercard": "5"},
                 ),
             }
-            change, success, log_message, err = actions[old_status]
+            change, success, log_message, err = actions_del[old_status]
             if change:
                 self.set_expire(f"card_{psp_token}", new_status, expiry)
 
@@ -171,12 +186,12 @@ class Redis:
 
         return success, log_message, err_code, err_message
 
-    def add_activation(self, psp_token, offer_id, activation_id):
+    def add_activation(self, psp_token: str, offer_id: str, activation_id: str) -> bool:
         # If using the PER_ prefix (see above), activation records will be persistently stored and request
         # returned as successful, provided the associated psp_token has a status of 'ADDED' within Pelops'
         # persistence layer.
 
-        now = datetime.now()
+        now = datetime.now(tz=settings.TZINFO)
         if psp_token[:4] == "PER_":
             try:
                 status = self.get(f"card_{psp_token}")
@@ -189,35 +204,34 @@ class Redis:
                     f"[{now}] Activated card/scheme pair with VOP for scheme "
                     f"{offer_id}. Activation id: {activation_id}",
                 )
-                logger.info(f"Card persistence: Activation {activation_id} created")
+                logger.info("Card persistence: Activation {} created", activation_id)
             else:
                 self.append_to_rlist(
                     f"cardlog_{psp_token}", f"[{now}] Activation failed for: {activation_id}. No added card found"
                 )
-                logger.info(f"Card persistence: Activation {activation_id} failed. No added card found")
+                logger.info("Card persistence: Activation {} failed. No added card found", activation_id)
                 return False
         return True
 
-    def remove_activation(self, psp_token, activation_id):
+    def remove_activation(self, psp_token: str, activation_id: str) -> bool:
         # If using the PER_ prefix (see above), deactivation records will be removed (as well as logged) and request
         # will return as successful, provided the associated psp_token has a status of 'ADDED' within Pelops'
         # persistence layer.
 
-        now = datetime.now()
+        now = datetime.now(tz=settings.TZINFO)
         if psp_token[:4] == "PER_":
             try:
                 status = self.get(f"card_{psp_token}")
             except self.NotFound:
                 return False
             if status == "ADD":
-
                 if self.store.lrem(f"card_activations_{psp_token}", -1, activation_id):
                     # lrem returns number of removed items, 0 if none found/removed
                     self.append_to_rlist(
                         f"cardlog_{psp_token}",
                         f"[{now}] Deactivated card/scheme pair. " f"Activation id: {activation_id}",
                     )
-                    logger.info(f"Card persistence: Activation {activation_id} deactivated")
+                    logger.info("Card persistence: Activation {} deactivated", activation_id)
                 else:
                     return False
             else:
