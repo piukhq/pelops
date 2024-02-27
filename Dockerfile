@@ -6,7 +6,6 @@ WORKDIR /app
 RUN pip install --no-cache ${APP_NAME}==$(echo ${APP_VERSION} | cut -c 2-)
 ADD wsgi.py .
 
-ENTRYPOINT [ "linkerd-await", "--" ]
 CMD [ "gunicorn", "--error-logfile=-", "--access-logfile=-", \
     "--logger-class=pelops.reporting.CustomGunicornLogger", \
     "--bind=0.0.0.0:9000", "wsgi:app" ]
