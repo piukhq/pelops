@@ -17,12 +17,7 @@ class Settings(BaseSettings):
     AUTH_USERNAME: str = "binktest"
     AUTH_PASSWORD: str = "9702u37553bvo89p9n2qnf9ow8bv9we8bn1oib6452v9"
 
-    REDIS_PASSWORD: str = ""
-    REDIS_HOST: str = "localhost"
-    REDIS_PORT: int = 6379
-    REDIS_DB: str = "0"
-    REDIS_PROTOCOL: str = "redis"
-    REDIS_URL: str = f"{REDIS_PROTOCOL}://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+    REDIS_URL: str = "redis://localhost:6379/0"
 
     TIMEZONE: str = "Europe/London"
     TZINFO: ClassVar[ZoneInfo] = ZoneInfo(TIMEZONE)
