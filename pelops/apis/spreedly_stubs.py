@@ -266,6 +266,14 @@ class Retain(Resource):
         logger.info("Spreedly api Abort {} - token {psp_token} not retained", code)
 
 
+@spreedly_api.route("/payment_methods/<psp_token>/redact.json")
+class Redact(Resource):
+    def put(self, psp_token: str) -> Response:
+        logger.info("request  /payment_methods/{}/redact.json", psp_token)
+        resp = spreedly_token_response(str(uuid4()), has_succeeded=True)
+        return jsonify(resp)
+
+
 @spreedly_api.route("/v1/gateways/<gateway_token>/purchase.json")
 class PaymentPurchase(Resource):
     def post(self, gateway_token: str) -> Response:  # noqa: ARG002
